@@ -14,44 +14,72 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+console.log("📦 N8N_WEBHOOK_URL cargado:", N8N_WEBHOOK_URL);
+if (!N8N_WEBHOOK_URL) {
+    console.error(
+        "❌ N8N_WEBHOOK_URL no está definido en las variables de entorno."
+    );
+    process.exit(1);
+}
 
 app.post("/api/upload", upload.array("files"), async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).send("No se proporcionaron archivos.");
+  }
+
+  const form = new FormData();
+
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).send("No se proporcionaron archivos.");
+    // Adjunta todos los archivos
+    for (const archivo of req.files) {
+      const filePath = archivo.path;
+      if (!fs.existsSync(filePath)) {
+        console.warn(`⚠️ Archivo no encontrado: ${filePath}`);
+        continue;
+      }
+
+      form.append("file", fs.createReadStream(filePath), archivo.originalname);
     }
 
-    const errores = [];
-    for (const archivo of req.files) {
-      const form = new FormData();
-      form.append("file", fs.createReadStream(archivo.path), archivo.originalname);
+    // Envío a n8n
+    await axios.post(N8N_WEBHOOK_URL, form, {
+      headers: form.getHeaders(),
+    });
 
+    // Borra los archivos subidos localmente
+    for (const archivo of req.files) {
       try {
-        await axios.post(N8N_WEBHOOK_URL, form, {
-          headers: form.getHeaders(),
-        });
-        fs.unlinkSync(archivo.path); // Borra archivo temporal tras envío
-      } catch (error) {
-        console.error(`❌ Error al enviar ${archivo.originalname}:`, error.message);
-        errores.push(archivo.originalname);
-        // También podrías dejar el archivo sin borrar si lo deseas
         fs.unlinkSync(archivo.path);
+      } catch (err) {
+        console.warn(`⚠️ No se pudo borrar ${archivo.path}:`, err.message);
       }
     }
 
-    if (errores.length > 0) {
-      return res.status(207).send(
-        `Algunos archivos fallaron: ${errores.join(", ")}. Los demás fueron enviados correctamente.`
-      );
+    console.log("✅ Todos los archivos fueron enviados correctamente a n8n.");
+    return res.status(200).send("Todos los archivos fueron enviados correctamente a n8n.");
+
+  } catch (error) {
+    console.error("❌ Error al enviar archivos:", error.message);
+
+    // Borra aunque haya fallo
+    for (const archivo of req.files) {
+      try {
+        if (fs.existsSync(archivo.path)) {
+          fs.unlinkSync(archivo.path);
+        }
+      } catch (err) {
+        console.warn(`⚠️ No se pudo borrar ${archivo.path}:`, err.message);
+      }
     }
 
-    res.status(200).send("Todos los archivos fueron enviados correctamente a n8n.");
-  } catch (error) {
-    console.error("❌ Error general:", error.message);
-    res.status(500).send("Error interno al procesar los archivos.");
+    // Solo una respuesta
+    if (!res.headersSent) {
+      return res.status(500).send("Error al enviar archivos a n8n.");
+    }
   }
 });
 
+
 app.listen(PORT, () => {
-  console.log(`✅ Servidor backend corriendo en http://localhost:${PORT}`);
+    console.log(`✅ Servidor backend corriendo en http://localhost:${PORT}`);
 });
