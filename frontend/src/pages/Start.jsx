@@ -1,5 +1,10 @@
 import React, { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import UploadButton from "../components/Buttons/UploadButton";
+import ToggleButton from "../components/Buttons/ToggleButton";
+import ViewUploadedButton from "../components/Buttons/ViewUploadedButton";
+import SelectedFilesModal from "../components/FileList/SelectedFilesModal";
+import UploadedFilesModal from "../components/FileList/UploadedFilesModal";
 
 const Start = () => {
     const inputRef = useRef();
@@ -85,127 +90,45 @@ const Start = () => {
                             type="file"
                             multiple
                             onChange={manejarArchivo}
-                            accept=".txt,.json,.csv"
+                            accept=".docx,.pdf,.csv,.xlsx"
                             ref={inputRef}
                             className="hidden"
                         />
 
-                        <button
-                            type="submit"
-                            className="bg-amber-500 hover:bg-amber-600 font-bold py-2 px-6 rounded-full disabled:opacity-50 cursor-pointer transition-colors duration-300"
+                        <UploadButton
+                            onClick={enviarArchivo}
                             disabled={subiendo}
-                        >
-                            {subiendo ? "Subiendo..." : "Subir archivo"}
-                        </button>
+                            uploading={subiendo}
+                        />
 
-                        <button
-                            type="button"
+                        <ToggleButton
                             onClick={() =>
                                 setMostrarSeleccionados(!mostrarSeleccionados)
                             }
-                            className={`bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ${
-                                archivos.length === 0
-                                    ? "opacity-50 cursor-not-allowed hover:bg-purple-500"
-                                    : ""
-                            }`}
+                            mostrar={mostrarSeleccionados}
                             disabled={archivos.length === 0}
-                        >
-                            {mostrarSeleccionados
-                                ? "Ocultar archivos seleccionados"
-                                : "Ver archivos seleccionados"}
-                        </button>
+                        />
 
-                        <button
-                            type="button"
-                            onClick={() =>
-                                archivosSubidos.length > 0 &&
-                                setMostrarLista(!mostrarLista)
-                            }
-                            className={`bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ${
-                                archivosSubidos.length === 0
-                                    ? "opacity-50 cursor-not-allowed hover:bg-blue-500"
-                                    : ""
-                            }`}
+                        <ViewUploadedButton
+                            onClick={() => setMostrarLista(!mostrarLista)}
+                            mostrar={mostrarLista}
                             disabled={archivosSubidos.length === 0}
-                        >
-                            {mostrarLista
-                                ? "Ocultar archivos"
-                                : "Ver archivos subidos"}
-                        </button>
+                        />
                     </div>
                 </form>
                 {mostrarSeleccionados && archivos.length > 0 && (
-                    <div className="fixed inset-0  bg-opacity-10 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-xl shadow-xl w-[500px] max-h-[80vh] overflow-y-auto">
-                            <h2 className="text-xl font-bold mb-4">
-                                Archivos seleccionados
-                            </h2>
-                            <ul className="text-sm text-gray-800 list-disc pl-4 space-y-1">
-                                {archivos.map((archivo, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex justify-between items-center"
-                                    >
-                                        <div>
-                                            <strong>{archivo.name}</strong> -{" "}
-                                            {(archivo.size / 1024).toFixed(2)}{" "}
-                                            KB
-                                        </div>
-                                        <button
-                                            onClick={() =>
-                                                eliminarArchivo(index)
-                                            }
-                                            className="ml-4 bg-red-400 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"
-                                        >
-                                            Quitar
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <div className="mt-6 text-right">
-                                <button
-                                    className="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-4 rounded"
-                                    onClick={() =>
-                                        setMostrarSeleccionados(false)
-                                    }
-                                >
-                                    Cerrar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <SelectedFilesModal
+                        archivos={archivos}
+                        onClose={() => setMostrarSeleccionados(false)}
+                        onRemove={eliminarArchivo}
+                    />
                 )}
 
                 {mostrarLista && archivosSubidos.length > 0 && (
-                    <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-                        <div className="bg-white p-6 rounded-xl shadow-xl w-[500px] max-h-[80vh] overflow-y-auto">
-                            <h2 className="text-xl font-bold mb-4 text-center text-blue-600">
-                                Archivos subidos
-                            </h2>
-                            <ul className="text-sm text-gray-800 list-disc pl-4 space-y-1">
-                                {archivosSubidos.map((nombreArchivo, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex justify-between items-center"
-                                    >
-                                        <span className="truncate max-w-xs">
-                                            {nombreArchivo}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <div className="mt-6 text-right">
-                                <button
-                                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-4 rounded"
-                                    onClick={() => setMostrarLista(false)}
-                                >
-                                    Cerrar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <UploadedFilesModal
+                        archivos={archivosSubidos}
+                        onClose={() => setMostrarLista(false)}
+                    />
                 )}
             </div>
         </div>
