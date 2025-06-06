@@ -1,5 +1,4 @@
-// components/Buttons/ViewUploadedButton.jsx
-import React from "react";
+import { BUTTON_LABELS } from "../../constants/messages";
 
 const ViewUploadedButton = ({ onClick, mostrar, disabled }) => (
     <button
@@ -10,7 +9,7 @@ const ViewUploadedButton = ({ onClick, mostrar, disabled }) => (
         }`}
         disabled={disabled}
     >
-        {mostrar ? "Ocultar archivos" : "Ver archivos subidos"}
+        {mostrar ? BUTTON_LABELS.HIDE_UPLOADED : BUTTON_LABELS.VIEW_UPLOADED}
     </button>
 );
 

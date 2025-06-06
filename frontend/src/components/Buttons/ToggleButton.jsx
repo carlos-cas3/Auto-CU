@@ -1,3 +1,5 @@
+import { BUTTON_LABELS } from "../../constants/messages";
+
 const ToggleButton = ({ onClick, disabled, mostrar }) => (
     <button
         type="button"
@@ -7,7 +9,7 @@ const ToggleButton = ({ onClick, disabled, mostrar }) => (
         }`}
         disabled={disabled}
     >
-        {mostrar ? "Ocultar archivos seleccionados" : "Ver archivos seleccionados"}
+        {mostrar ? BUTTON_LABELS.HIDE_SELECTED : BUTTON_LABELS.VIEW_SELECTED}
     </button>
 );
 

@@ -1,5 +1,4 @@
-import React from "react";
-
+import { formatearTamano } from "../../utils/fileUtils";
 const SelectedFilesModal = ({ archivos, onClose, onRemove }) => {
     return (
         <div className="fixed inset-0  bg-opacity-10 flex items-center justify-center z-50">
@@ -15,8 +14,9 @@ const SelectedFilesModal = ({ archivos, onClose, onRemove }) => {
                         >
                             <div>
                                 <strong>{archivo.name}</strong> -{" "}
-                                {(archivo.size / 1024).toFixed(2)} KB
+                                {formatearTamano(archivo.size)}
                             </div>
+
                             <button
                                 onClick={() => onRemove(index)}
                                 className="ml-4 bg-red-400 hover:bg-red-600 text-white px-2 py-1 rounded text-xs"

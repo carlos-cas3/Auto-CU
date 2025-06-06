@@ -1,5 +1,3 @@
-import React from "react";
-
 const UploadedFilesModal = ({ archivos , onClose }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
