@@ -21,3 +21,27 @@ exports.handleUpload = async (req, res) => {
         }
     }
 };
+
+const { subirArchivoASupabase } = require("../services/storage.service");
+
+exports.subirArchivos = async (req, res) => {
+    try {
+        const paths = [];
+
+        for (const archivo of req.files) {
+            const rutaSupabase = await subirArchivoASupabase(archivo);
+            paths.push(rutaSupabase);
+
+            // Eliminar el archivo local temporal
+            fs.unlinkSync(archivo.path);
+        }
+
+        res.status(200).json({
+            mensaje: "Archivos subidos a Supabase correctamente.",
+            paths,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ mensaje: "Error al subir a Supabase" });
+    }
+};
