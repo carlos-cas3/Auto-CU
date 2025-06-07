@@ -3,6 +3,8 @@ const router = express.Router();
 const multerMiddleware = require("../middlewares/multer.middleware");
 const uploadController = require("../controllers/upload.controller");
 
-router.post("/upload", multerMiddleware, uploadController.handleUpload);
+router.post("/upload", multerMiddleware, uploadController.subirYEnviarArchivos);
+
+
 
 module.exports = router;

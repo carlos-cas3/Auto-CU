@@ -1,23 +1,48 @@
-// services/storage.service.js
 const fs = require("fs");
-const path = require("path");
-const supabase = require("../config/supabase");
+const { supabase } = require("../config/supabase");
 
-async function subirArchivoASupabase(archivo) {
-    const contenido = fs.readFileSync(archivo.path);
-    const nombre = `archivos/${Date.now()}_${archivo.originalname}`;
+const BUCKET_NAME = process.env.SUPABASE_BUCKET;
 
-    const { data, error } = await supabase.storage
-        .from("archivos") // nombre del bucket
-        .upload(nombre, contenido, {
-            contentType: archivo.mimetype,
-        });
+async function subirArchivoASupabase(file) {
+  const fileContent = fs.readFileSync(file.path);
+  const fileName = `${Date.now()}_${file.originalname}`;
 
-    if (error) {
-        throw new Error("Error al subir archivo a Supabase: " + error.message);
-    }
+  const { data, error } = await supabase
+    .storage
+    .from(BUCKET_NAME)
+    .upload(fileName, fileContent, {
+      contentType: file.mimetype,
+      upsert: false,
+    });
 
-    return data.path;
+  if (error) {
+    throw error;
+  }
+
+  const { publicURL, error: urlError } = supabase
+    .storage
+    .from(BUCKET_NAME)
+    .getPublicUrl(fileName);
+
+  if (urlError) {
+    console.warn("⚠️ Error obteniendo URL pública:", urlError.message);
+  }
+
+  return {
+    originalName: file.originalname,
+    storedName: fileName,
+    path: data.path,
+    publicURL: publicURL || null,
+  };
 }
 
-module.exports = { subirArchivoASupabase };
+async function subirArchivosASupabase(files) {
+  const resultados = [];
+  for (const file of files) {
+    const info = await subirArchivoASupabase(file);
+    resultados.push(info);
+  }
+  return resultados;
+}
+
+module.exports = { subirArchivoASupabase, subirArchivosASupabase };

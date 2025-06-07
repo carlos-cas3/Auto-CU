@@ -1,11 +1,16 @@
-// config/supabase.js
+// /config/supabase.js
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ SUPABASE_URL o SUPABASE_KEY no están definidas en .env');
+  process.exit(1);
+}
 
 console.log("🔌 Supabase conectado a:", supabaseUrl);
 
-module.exports = supabase;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+module.exports = { supabase };
