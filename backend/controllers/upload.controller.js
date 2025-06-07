@@ -1,36 +1,68 @@
-const fileHelper = require("../utils/fileHelper");
-const supabaseStorage = require("../services/storage.service");
-const n8nService = require("../services/n8n.service");
-const fileHelperSupabase = require("../utils/fileHelperSupabase");
+  // controllers/upload.controller.js
+  const { verificarWebhookActivo } = require("../utils/webHookTriggerCheck");
+  const { subirArchivosASupabase, eliminarArchivoSupabase } = require("../services/storage.service");
+  const { sendToN8N } = require("../services/n8n.service");
+  const { cleanupFiles } = require("../utils/fileHelper");
+  const FormData = require("form-data");
 
-exports.subirYEnviarArchivos = async (req, res) => {
+  exports.subirYEnviarArchivos = async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ mensaje: "No se proporcionaron archivos." });
+  }
+
+  // 🔄 Determinar URL según entorno
+  const entorno = process.env.N8N_ENV;
+  const webhookUrl = entorno === "production"
+    ? process.env.N8N_WEBHOOK_URL_PROD
+    : process.env.N8N_WEBHOOK_URL_TEST;
+
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).send("No se proporcionaron archivos.");
+    console.log("🔍 Verificando si el webhook está activo...");
+    const webhookActivo = await verificarWebhookActivo(webhookUrl);
+
+    if (!webhookActivo) {
+      console.warn("❌ Webhook inactivo. Deteniendo flujo.");
+      cleanupFiles(req.files);
+      return res.status(503).json({ mensaje: "El webhook de N8N no está activo." });
     }
 
-    // 1. Subir archivos a Supabase
-    const archivosSupabase = await supabaseStorage.subirArchivosASupabase(req.files);
+    console.log("✅ Webhook activo. Procediendo con la subida a Supabase...");
 
-    // 2. Construir los metadatos para enviar a n8n
-    const { form } = await fileHelperSupabase.buildFormDataFromSupabaseInfo(archivosSupabase);
+    const archivosSubidos = await subirArchivosASupabase(req.files);
+    const metadatos = archivosSubidos.map((archivo) => ({
+      nombreOriginal: archivo.originalName,
+      nombreGuardado: archivo.storedName,
+      urlPublica: archivo.publicURL,
+      extension: archivo.originalName.split(".").pop(),
+    }));
+    
 
-    // 3. Enviar a n8n
-    await n8nService.sendToN8N(form);
 
-    // 4. Limpiar archivos temporales locales
-    fileHelper.cleanupFiles(req.files);
+    const form = new FormData();
+    form.append("metadatos", JSON.stringify(metadatos));
+
+    console.log("📤 Enviando metadatos al webhook N8N...");
+    await sendToN8N(form, webhookUrl); // pasa url explícita
+
+    cleanupFiles(req.files);
 
     res.status(200).json({
-      mensaje: "Archivos subidos y metadatos enviados a n8n.",
-      archivos: archivosSupabase,
+      mensaje: "Archivos subidos a Supabase y metadatos enviados a N8N.",
+      metadatos,
     });
-  } catch (error) {
-    console.error("❌ Error en la subida y envío:", error.message);
-    fileHelper.cleanupFiles(req.files);
 
-    if (!res.headersSent) {
-      res.status(500).send("Error al subir archivos o enviar a n8n.");
+  } catch (error) {
+    console.error("❌ Error en el flujo completo:", error.message);
+
+    if (Array.isArray(req.files)) {
+      for (const file of req.files) {
+        try {
+          await eliminarArchivoSupabase(file.storedName);
+        } catch (_) {}
+      }
     }
+
+    cleanupFiles(req.files);
+    res.status(500).json({ mensaje: "Error al subir o enviar archivos.", error: error.message });
   }
 };
