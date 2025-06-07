@@ -26,9 +26,7 @@ export const useStartLogic = () => {
         setArchivos((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const enviarArchivo = async (e) => {
-        e.preventDefault();
-
+    const enviarArchivo = async () => {
         if (archivos.length === 0) {
             toast.error(TOAST_MESSAGES.NO_FILES_SELECTED);
             return;
@@ -43,15 +41,24 @@ export const useStartLogic = () => {
                 toast.success(TOAST_MESSAGES.UPLOAD_SUCCESS);
                 setArchivosSubidos((prev) => [
                     ...prev,
-                    ...archivos.map((a) => a.name),
+                    ...archivos.map((a) => ({
+                        name: a.name,
+                        size: a.size,
+                        type: a.type,
+                        lastModified: a.lastModified,
+                    })),
                 ]);
+
                 setArchivos([]);
+                return true;
             } else {
                 toast.error(respuesta.error || TOAST_MESSAGES.UPLOAD_ERROR);
+                return false;
             }
         } catch (error) {
             console.error(error);
             toast.error(TOAST_MESSAGES.UPLOAD_ERROR);
+            return false;
         } finally {
             setSubiendo(false);
         }
