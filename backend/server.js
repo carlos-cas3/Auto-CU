@@ -12,6 +12,10 @@ app.use(express.json());
 const routes = require("./routes"); // Cargamos el index.js dentro de /routes
 app.use("/api", routes);
 
+const path = require("path");
+app.use("/imagenes", express.static(path.join(__dirname, "..", "docs", "casos_uso")));
+
+
 loadEnv(); // Validación de variables de entorno
 
 app.listen(PORT, () => {

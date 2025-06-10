@@ -1,7 +1,8 @@
 const { supabase } = require("../config/supabase");
-
 const fs = require("fs");
 const path = require("path");
+const util = require("util");
+const exec = util.promisify(require("child_process").exec);
 
 exports.receiveFromN8N = async (req, res) => {
   const { id } = req.body;
@@ -17,7 +18,7 @@ exports.receiveFromN8N = async (req, res) => {
     .single();
 
   if (error) {
-    console.error("Error al consultar Supabase:", error);
+    console.error("❌ Error al consultar Supabase:", error);
     return res.status(500).json({ error: "Error al consultar la base de datos" });
   }
 
@@ -25,25 +26,43 @@ exports.receiveFromN8N = async (req, res) => {
     return res.status(404).json({ error: "No se encontró un diagrama con ese ID" });
   }
 
-  // Ruta hacia la carpeta docs/casos_uso desde el backend
-  const filePath = path.join(__dirname, "..", "..", "docs", "casos_uso", `${id}.puml`);
+  // Ruta absoluta del archivo .puml
+  const folderPath = path.join(__dirname, "..", "..", "docs", "casos_uso");
+  const filePath = path.join(folderPath, `${id}.puml`);
 
-  // Asegurarse de que la carpeta exista
-  fs.mkdir(path.dirname(filePath), { recursive: true }, (err) => {
-    if (err) {
-      console.error("❌ Error al crear la carpeta destino:", err);
-      return res.status(500).json({ error: "Error al preparar el directorio de salida" });
+  try {
+    // Crear carpeta si no existe
+    await fs.promises.mkdir(folderPath, { recursive: true });
+
+    // Escribir archivo .puml
+    await fs.promises.writeFile(filePath, data.plantuml_text);
+    console.log(`✅ Archivo .puml guardado en: ${filePath}`);
+
+    // Comando Docker para generar imagen PNG
+    const dockerCmd = `docker run --rm -v "${folderPath}:/workspace" plantuml/plantuml -tpng /workspace/${id}.puml`;
+    await exec(dockerCmd);
+
+    const imageUrl = `http://localhost:5000/imagenes/${id}.png`;
+
+    // Actualizar la tabla con la URL de la imagen generada
+    const { error: updateError } = await supabase
+      .from("diagrams")
+      .update({ image_url: imageUrl })
+      .eq("id", id);
+
+    if (updateError) {
+      console.error("❌ Error al actualizar la URL de la imagen en Supabase:", updateError);
+      return res.status(500).json({ error: "Error al actualizar la URL de la imagen en la base de datos" });
     }
 
-    // Escribir el archivo
-    fs.writeFile(filePath, data.plantuml_text, (err) => {
-      if (err) {
-        console.error("❌ Error al guardar el archivo .puml:", err);
-        return res.status(500).json({ error: "Error al guardar el archivo .puml" });
-      } else {
-        console.log(`✅ Archivo .puml guardado en: ${filePath}`);
-        return res.json({ message: "Archivo .puml guardado exitosamente", path: filePath });
-      }
+    console.log(`✅ Imagen PNG generada: ${id}.png`);
+    return res.json({
+      message: "Archivo .puml y .png generados correctamente",
+      imageUrl
     });
-  });
+
+  } catch (err) {
+    console.error("❌ Error en el proceso:", err);
+    return res.status(500).json({ error: "Error en el procesamiento del diagrama" });
+  }
 };

@@ -1,0 +1,65 @@
+' Title: Diagrama de Casos de Uso para una Tienda Online de Instrumentos Musicales
+
+@startuml
+left to right direction
+
+actor Cliente
+actor Administrador
+actor EncargadoEnvios
+actor SistemaPagos
+
+rectangle TiendaOnline {
+
+    Cliente -- (Registrarse)
+    Cliente -- (Iniciar sesión)
+    Cliente -- (Ver catálogo)
+    Cliente -- (Aplicar filtros)
+    Cliente -- (Buscar instrumentos)
+    Cliente -- (Ver detalle producto)
+    Cliente -- (Ver imágenes)
+    Cliente -- (Ver reseñas)
+    Cliente -- (Añadir al carrito)
+    Cliente -- (Modificar carrito)
+    Cliente -- (Realizar pago)
+    Cliente -- (Seleccionar dirección)
+    Cliente -- (Recibir confirmación)
+    Cliente -- (Seguimiento pedido)
+    Cliente -- (Cancelar/Devolver pedido)
+    Cliente -- (Guardar en lista deseos)
+    Cliente -- (Recibir recomendaciones)
+    Cliente -- (Ver productos relacionados)
+    Cliente -- (Soporte online)
+    Cliente -- (Descargar factura)
+    Cliente -- (Suscribirse a boletín)
+    Cliente -- (Usar cupones)
+    Cliente -- (Registro con Google/Facebook)
+    Cliente -- (Hacer preguntas)
+    Cliente -- (Ver videos)
+    Cliente -- (Programar cita)
+    Cliente -- (Compartir en redes sociales)
+
+
+    Administrador -- (Gestionar inventario)
+    Administrador -- (Recibir notificaciones stock)
+    Administrador -- (Ver estadísticas ventas)
+    Administrador -- (Gestionar usuarios)
+    Administrador -- (Gestionar reseñas)
+    Administrador -- (Gestionar pedidos)
+    Administrador -- (Aplicar promociones)
+    Administrador -- (Enviar correos masivos)
+    Administrador -- (Cambiar contenido página principal)
+    Administrador -- (Gestionar métodos de pago)
+    Administrador -- (Habilitar preventa)
+
+    EncargadoEnvios -- (Ver pedidos pendientes)
+    EncargadoEnvios -- (Actualizar estado envío)
+    EncargadoEnvios -- (Imprimir etiquetas)
+    EncargadoEnvios -- (Gestionar devoluciones)
+
+    SistemaPagos -- (Validar pago)
+    SistemaPagos -- (Registrar fallos de pago)
+    SistemaPagos -- (Emitir comprobantes)
+
+}
+
+@enduml
