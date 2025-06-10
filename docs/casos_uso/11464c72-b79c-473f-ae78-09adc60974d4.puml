@@ -1,0 +1,65 @@
+' Title: Diagrama de Casos de Uso para una Tienda Online de Instrumentos Musicales
+
+@startuml
+left to right direction
+
+actor Cliente
+actor Administrador
+actor EncargadoEnvios
+actor SistemaPagos
+
+rectangle TiendaOnline {
+
+    Cliente -- (Registrarse)
+    Cliente -- (Iniciar Sesión)
+    Cliente -- (Ver Catálogo)
+    Cliente -- (Aplicar Filtros)
+    Cliente -- (Buscar Instrumentos)
+    Cliente -- (Ver Detalle Producto)
+    Cliente -- (Ver Imágenes)
+    Cliente -- (Ver Reseñas)
+    Cliente -- (Añadir al Carrito)
+    Cliente -- (Modificar Carrito)
+    Cliente -- (Proceder al Pago)
+    Cliente -- (Seleccionar Dirección)
+    Cliente -- (Recibir Confirmación Compra)
+    Cliente -- (Hacer Seguimiento Pedido)
+    Cliente -- (Cancelar/Devolver Pedido)
+    Cliente -- (Guardar en Lista Deseos)
+    Cliente -- (Recibir Recomendaciones)
+    Cliente -- (Ver Productos Relacionados)
+    Cliente -- (Contactar Soporte)
+    Cliente -- (Descargar Factura)
+    Cliente -- (Suscribirse a Boletín)
+    Cliente -- (Usar Cupón Descuento)
+    Cliente -- (Registrarse con Google/Facebook)
+    Cliente -- (Hacer Pregunta Producto)
+    Cliente -- (Ver Videos)
+    Cliente -- (Programar Cita Prueba)
+    Cliente -- (Compartir Producto Redes Sociales)
+
+
+    Administrador -- (Gestionar Inventario)
+    Administrador -- (Recibir Notificaciones Stock Bajo)
+    Administrador -- (Ver Estadísticas Ventas)
+    Administrador -- (Gestionar Usuarios)
+    Administrador -- (Gestionar Reseñas)
+    Administrador -- (Gestionar Pedidos)
+    Administrador -- (Aplicar Promociones)
+    Administrador -- (Enviar Correos Masivos)
+    Administrador -- (Cambiar Contenido Principal)
+    Administrador -- (Gestionar Métodos Pago)
+    Administrador -- (Habilitar Instrumentos Preventa)
+
+    EncargadoEnvios -- (Ver Pedidos Pendientes)
+    EncargadoEnvios -- (Actualizar Estado Envío)
+    EncargadoEnvios -- (Imprimir Etiquetas Envío)
+    EncargadoEnvios -- (Gestionar Devoluciones)
+
+    SistemaPagos -- (Validar Pago)
+    SistemaPagos -- (Registrar Fallos Pago)
+    SistemaPagos -- (Emitir Comprobante Pago)
+
+}
+
+@enduml

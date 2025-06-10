@@ -3,7 +3,7 @@
     const multerMiddleware = require("../middlewares/multer.middleware");
     const uploadController = require("../controllers/upload.controller");
 
-    router.post("/upload", multerMiddleware, uploadController.subirYEnviarArchivos);
+    router.post("/", multerMiddleware, uploadController.subirYEnviarArchivos);
 
 
 
