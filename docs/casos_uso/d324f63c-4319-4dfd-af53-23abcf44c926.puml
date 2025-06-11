@@ -1,0 +1,114 @@
+' Title: Diagrama de Casos de Uso: Tienda Online de Instrumentos Musicales
+
+@startuml
+left to right direction
+
+actor Cliente
+actor Administrador
+actor EncargadoEnvios
+actor SistemaPagos
+
+rectangle TiendaOnline {
+
+    usecase "Registrarse"
+    usecase "Iniciar Sesión"
+    usecase "Ver Catálogo"
+    usecase "Aplicar Filtros"
+    usecase "Buscar Instrumentos"
+    usecase "Ver Detalle Producto"
+    usecase "Ver Imágenes"
+    usecase "Ver Reseñas"
+    usecase "Añadir al Carrito"
+    usecase "Modificar Carrito"
+    usecase "Realizar Pago"
+    usecase "Seleccionar Dirección"
+    usecase "Recibir Confirmación"
+    usecase "Seguimiento Pedido"
+    usecase "Cancelar/Devolver Pedido"
+    usecase "Guardar en Lista Deseos"
+    usecase "Recibir Recomendaciones"
+    usecase "Ver Productos Relacionados"
+    usecase "Contactar Soporte"
+    usecase "Descargar Factura"
+    usecase "Suscribirse a Boletín"
+    usecase "Usar Cupón Descuento"
+    usecase "Registrarse con Google/FB"
+    usecase "Hacer Pregunta Producto"
+    usecase "Ver Videos del Instrumento"
+    usecase "Programar Cita en Tienda"
+    usecase "Compartir en Redes Sociales"
+
+
+    usecase "Gestionar Inventario"
+    usecase "Recibir Notificaciones Stock"
+    usecase "Ver Estadísticas Ventas"
+    usecase "Gestionar Usuarios"
+    usecase "Gestionar Reseñas"
+    usecase "Gestionar Pedidos"
+    usecase "Aplicar Promociones"
+    usecase "Enviar Correos Masivos"
+    usecase "Gestionar Página Principal"
+    usecase "Gestionar Métodos Pago/Fiscal"
+    usecase "Habilitar Instrumentos Preventa"
+
+    usecase "Ver Pedidos Pendientes"
+    usecase "Actualizar Estado Envío"
+    usecase "Imprimir Etiquetas Envío"
+    usecase "Gestionar Devoluciones"
+
+    usecase "Validar Pago"
+    usecase "Registrar Fallos Pago"
+    usecase "Emitir Comprobante Pago"
+
+}
+
+Cliente -- "Registrarse"
+Cliente -- "Iniciar Sesión"
+Cliente -- "Ver Catálogo"
+Cliente -- "Aplicar Filtros"
+Cliente -- "Buscar Instrumentos"
+Cliente -- "Ver Detalle Producto"
+Cliente -- "Ver Imágenes"
+Cliente -- "Ver Reseñas"
+Cliente -- "Añadir al Carrito"
+Cliente -- "Modificar Carrito"
+Cliente -- "Realizar Pago"
+Cliente -- "Seleccionar Dirección"
+Cliente -- "Recibir Confirmación"
+Cliente -- "Seguimiento Pedido"
+Cliente -- "Cancelar/Devolver Pedido"
+Cliente -- "Guardar en Lista Deseos"
+Cliente -- "Recibir Recomendaciones"
+Cliente -- "Ver Productos Relacionados"
+Cliente -- "Contactar Soporte"
+Cliente -- "Descargar Factura"
+Cliente -- "Suscribirse a Boletín"
+Cliente -- "Usar Cupón Descuento"
+Cliente -- "Registrarse con Google/FB"
+Cliente -- "Hacer Pregunta Producto"
+Cliente -- "Ver Videos del Instrumento"
+Cliente -- "Programar Cita en Tienda"
+Cliente -- "Compartir en Redes Sociales"
+
+Administrador -- "Gestionar Inventario"
+Administrador -- "Recibir Notificaciones Stock"
+Administrador -- "Ver Estadísticas Ventas"
+Administrador -- "Gestionar Usuarios"
+Administrador -- "Gestionar Reseñas"
+Administrador -- "Gestionar Pedidos"
+Administrador -- "Aplicar Promociones"
+Administrador -- "Enviar Correos Masivos"
+Administrador -- "Gestionar Página Principal"
+Administrador -- "Gestionar Métodos Pago/Fiscal"
+Administrador -- "Habilitar Instrumentos Preventa"
+
+EncargadoEnvios -- "Ver Pedidos Pendientes"
+EncargadoEnvios -- "Actualizar Estado Envío"
+EncargadoEnvios -- "Imprimir Etiquetas Envío"
+EncargadoEnvios -- "Gestionar Devoluciones"
+
+SistemaPagos -- "Validar Pago"
+SistemaPagos -- "Registrar Fallos Pago"
+SistemaPagos -- "Emitir Comprobante Pago"
+
+@enduml

@@ -1,5 +1,6 @@
 import MainLayout from "../layouts/MainLayout.jsx";
 import Start from "../pages/Start.jsx";
+import ImageViewer from "../pages/ImageViewver.jsx";
 import React from "react";
 
 const routes = [
@@ -11,6 +12,10 @@ const routes = [
                 path: "",
                 element: <Start />,
             },
+            {
+                path: "/view",
+                element: <ImageViewer />
+            }
         ],
     },
 ];
