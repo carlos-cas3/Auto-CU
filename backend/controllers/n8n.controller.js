@@ -66,3 +66,29 @@ exports.receiveFromN8N = async (req, res) => {
     return res.status(500).json({ error: "Error en el procesamiento del diagrama" });
   }
 };
+
+exports.getImageUrl = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: "Falta el ID en los parámetros" });
+  }
+
+  const { data, error } = await supabase
+    .from("diagrams")
+    .select("image_url")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("❌ Error al obtener image_url de Supabase:", error);
+    return res.status(500).json({ error: "Error al consultar la base de datos" });
+  }
+
+  if (!data || !data.image_url) {
+    return res.status(404).json({ error: "No se encontró la imagen para ese ID" });
+  }
+
+  return res.json({ imageUrl: data.image_url });
+};
+
