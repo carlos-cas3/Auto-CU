@@ -1,28 +1,50 @@
 // src/pages/ImageViewer.jsx
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const ImageViewer = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
   const [imageUrl, setImageUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const url = searchParams.get('imageUrl');
-    if (url) {
-      setImageUrl(url);
-
-      // 🔽 Guarda la imagen en localStorage para que Navbar la use
-      localStorage.setItem('lastImageUrl', url);
+    const id = searchParams.get('id');
+    if (id) {
+      const fetchImageUrl = async () => {
+        try {
+          const response = await axios.get(`http://localhost:5000/api/n8n/image-url/${id}`);
+          const url = response.data.imageUrl;
+          setImageUrl(url);
+          localStorage.setItem('lastImageUrl', url);
+          localStorage.setItem('lastImageId', id); // opcional: guarda también el ID
+        } catch (err) {
+          console.error("❌ Error al obtener la imagen:", err);
+          alert("No se pudo obtener la imagen.");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchImageUrl();
+    } else {
+      setLoading(false);
     }
   }, [searchParams]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-700">
+        <p className="text-xl">Cargando imagen...</p>
+      </div>
+    );
+  }
 
   if (!imageUrl) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 text-gray-700">
         <h1 className="text-2xl font-bold mb-4">No hay imagen para visualizar</h1>
-        <p className="mb-6">Asegúrate de que N8N haya enviado una imagen válida.</p>
+        <p className="mb-6">Asegúrate de que N8N haya generado correctamente el recurso.</p>
         <button
           onClick={() => navigate(-1)}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"

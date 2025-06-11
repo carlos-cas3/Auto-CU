@@ -5,19 +5,18 @@ import { useEffect, useState } from 'react';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [imageUrl, setImageUrl] = useState(null);
+  const [lastImageId, setLastImageId] = useState(null);
 
-  // Cargar imageUrl desde localStorage cuando se monta el componente
   useEffect(() => {
-    const storedUrl = localStorage.getItem('lastImageUrl');
-    if (storedUrl) {
-      setImageUrl(storedUrl);
+    const storedId = localStorage.getItem('lastImageId');
+    if (storedId) {
+      setLastImageId(storedId);
     }
   }, []);
 
   const handleViewClick = () => {
-    if (imageUrl) {
-      navigate(`/view?imageUrl=${encodeURIComponent(imageUrl)}`);
+    if (lastImageId) {
+      navigate(`/view?id=${lastImageId}`);
     } else {
       alert('No hay imagen disponible para visualizar.');
     }
