@@ -32,11 +32,8 @@ const Start = () => {
     };
 
     return (
-        <div className="bg-gray-600 min-h-screen flex justify-center items-center">
+        <div className="bg-gray-600 min-h-screen flex justify-center items-start">
             <div className="bg-white rounded-2xl flex flex-col p-5 gap-5 m-5">
-                <span className="text-3xl font-bold text-center">
-                    Gestor de archivos
-                </span>
 
                 <div className="flex flex-col gap-5 ">
                     <div className="bg-gray-400 p-5 flex flex-col gap-3 rounded-xl">

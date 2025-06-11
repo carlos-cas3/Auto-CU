@@ -1,11 +1,16 @@
+import { FaFileImport , FaImage} from "react-icons/fa";
+
+
 const navLinks = [
   {
-    name: 'Home',
-    path: '/'
+    name: 'Gestor de Archivos',
+    path: '/',
+    icon: FaFileImport 
   },
   {
-    name: 'Test Layout',
-    path: '/testLayout'
+    name: 'Ver Imágenes',
+    path: '/view',
+    icon: FaImage 
   },
 ];
 
