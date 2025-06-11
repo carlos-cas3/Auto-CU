@@ -1,6 +1,7 @@
 // src/pages/ImageViewer.jsx
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+
 const ImageViewer = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -11,6 +12,9 @@ const ImageViewer = () => {
     const url = searchParams.get('imageUrl');
     if (url) {
       setImageUrl(url);
+
+      // 🔽 Guarda la imagen en localStorage para que Navbar la use
+      localStorage.setItem('lastImageUrl', url);
     }
   }, [searchParams]);
 

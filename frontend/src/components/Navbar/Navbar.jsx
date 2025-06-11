@@ -1,16 +1,25 @@
 // src/components/Navbar/Navbar.jsx
 import { useNavigate } from 'react-router-dom';
 import navLinks from '../../constants/navLinks';
+import { useEffect, useState } from 'react';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const [imageUrl, setImageUrl] = useState(null);
 
-  // Puedes cambiar esto por una prop, o por un estado global
-  const imageUrl = 'http://localhost:5000/imagenes/98379b02-1bbd-4b7e-be6e-470cda030d01.png';
+  // Cargar imageUrl desde localStorage cuando se monta el componente
+  useEffect(() => {
+    const storedUrl = localStorage.getItem('lastImageUrl');
+    if (storedUrl) {
+      setImageUrl(storedUrl);
+    }
+  }, []);
 
   const handleViewClick = () => {
     if (imageUrl) {
       navigate(`/view?imageUrl=${encodeURIComponent(imageUrl)}`);
+    } else {
+      alert('No hay imagen disponible para visualizar.');
     }
   };
 
@@ -19,7 +28,7 @@ const Navbar = () => {
       <div className="flex justify-around text-xl">
         {navLinks.map((link, index) => {
           const Icon = link.icon;
-          const isVerImagenes = link.name === "Ver Imagenes";
+          const isVerImagenes = link.name === "Ver Imágenes";
 
           return isVerImagenes ? (
             <button
