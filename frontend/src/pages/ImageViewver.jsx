@@ -1,7 +1,6 @@
 // src/pages/ImageViewer.jsx
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-
 const ImageViewer = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
