@@ -9,7 +9,7 @@ exports.sendToN8N = async (form, url) => {
   try {
     const headers = form.getHeaders();
     console.log("📡 Enviando metadatos a N8N:", url);
-    
+
     const response = await axios.post(url, form, { headers });
 
     if (response.status >= 200 && response.status < 300) {

@@ -1,6 +1,6 @@
 import MainLayout from "../layouts/MainLayout.jsx";
 import Start from "../pages/Start.jsx";
-import ImageViewer from "../pages/ImageViewver.jsx";
+import ImageViewer from "../pages/ImageViewer.jsx";
 import React from "react";
 
 const routes = [
@@ -13,9 +13,9 @@ const routes = [
                 element: <Start />,
             },
             {
-                path: "/view",
-                element: <ImageViewer />
-            }
+                path: "view", // <-- esto es un error sutil
+                element: <ImageViewer />,
+            },
         ],
     },
 ];
