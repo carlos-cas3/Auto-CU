@@ -26,25 +26,19 @@ exports.receiveFromN8N = async (req, res) => {
     return res.status(404).json({ error: "No se encontró un diagrama con ese ID" });
   }
 
-  // Ruta absoluta del archivo .puml
   const folderPath = path.join(__dirname, "..", "..", "docs", "casos_uso");
   const filePath = path.join(folderPath, `${id}.puml`);
 
   try {
-    // Crear carpeta si no existe
     await fs.promises.mkdir(folderPath, { recursive: true });
-
-    // Escribir archivo .puml
     await fs.promises.writeFile(filePath, data.plantuml_text);
     console.log(`✅ Archivo .puml guardado en: ${filePath}`);
 
-    // Comando Docker para generar imagen PNG
     const dockerCmd = `docker run --rm -v "${folderPath}:/workspace" plantuml/plantuml -tpng /workspace/${id}.puml`;
     await exec(dockerCmd);
 
     const imageUrl = `http://localhost:5000/imagenes/${id}.png`;
 
-    // Actualizar la tabla con la URL de la imagen generada
     const { error: updateError } = await supabase
       .from("diagrams")
       .update({ image_url: imageUrl })
@@ -58,7 +52,8 @@ exports.receiveFromN8N = async (req, res) => {
     console.log(`✅ Imagen PNG generada: ${id}.png`);
     return res.json({
       message: "Archivo .puml y .png generados correctamente",
-      imageUrl
+      imageUrl,
+      id
     });
 
   } catch (err) {
@@ -67,28 +62,64 @@ exports.receiveFromN8N = async (req, res) => {
   }
 };
 
+
 exports.getImageUrl = async (req, res) => {
   const { id } = req.params;
+  console.log("🪪 ID recibido en backend:", id);
 
-  if (!id) {
-    return res.status(400).json({ error: "Falta el ID en los parámetros" });
+  try {
+    const { data, error } = await supabase
+      .from("diagrams")
+      .select("image_url")
+      .eq("id", id)
+      .single();
+
+    console.log("📦 Data:", data);
+    console.log("❌ Error Supabase:", error);
+
+    if (error) {
+      return res.status(500).json({
+        message: "Error al consultar Supabase",
+        error: error.message,
+      });
+    }
+
+    if (!data || !data.image_url) {
+      return res.status(404).json({
+        message: "No se encontró la imagen con ese ID",
+      });
+    }
+
+    return res.json({ imageUrl: data.image_url });
+  } catch (err) {
+    console.error("💥 Error interno del servidor:", err);
+    return res.status(500).json({
+      message: "Error interno del servidor",
+      error: err.message,
+    });
   }
-
-  const { data, error } = await supabase
-    .from("diagrams")
-    .select("image_url")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    console.error("❌ Error al obtener image_url de Supabase:", error);
-    return res.status(500).json({ error: "Error al consultar la base de datos" });
-  }
-
-  if (!data || !data.image_url) {
-    return res.status(404).json({ error: "No se encontró la imagen para ese ID" });
-  }
-
-  return res.json({ imageUrl: data.image_url });
 };
 
+exports.getLastDiagramId = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("diagrams")
+      .select("id")
+      .order("created_at", { ascending: false }) // usa este campo
+      .limit(1);
+
+    if (error) {
+      console.error("❌ Error al obtener el último ID:", error);
+      return res.status(500).json({ error: "Error al consultar Supabase" });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: "No hay diagramas disponibles" });
+    }
+
+    return res.json({ id: data[0].id });
+  } catch (err) {
+    console.error("💥 Error interno:", err);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+};

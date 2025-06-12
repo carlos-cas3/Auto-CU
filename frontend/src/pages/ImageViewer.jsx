@@ -1,4 +1,3 @@
-// src/pages/ImageViewer.jsx
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -9,27 +8,40 @@ const ImageViewer = () => {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  console.log("🧪 ImageViewer montado");
+
   useEffect(() => {
     const id = searchParams.get('id');
-    if (id) {
-      const fetchImageUrl = async () => {
-        try {
-          const response = await axios.get(`http://localhost:5000/api/n8n/image-url/${id}`);
-          const url = response.data.imageUrl;
-          setImageUrl(url);
-          localStorage.setItem('lastImageUrl', url);
-          localStorage.setItem('lastImageId', id); // opcional: guarda también el ID
-        } catch (err) {
-          console.error("❌ Error al obtener la imagen:", err);
-          alert("No se pudo obtener la imagen.");
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchImageUrl();
-    } else {
+    console.log("🧭 ID recibido de la URL:", id);
+
+    if (!id) {
+      console.warn("⚠️ No se recibió ningún ID.");
       setLoading(false);
+      return;
     }
+
+    const fetchImageUrl = async () => {
+      try {
+        console.log("🔄 Llamando al backend con ID:", id);
+        const response = await axios.get(`http://localhost:5000/api/n8n/image-url/${id}`);
+        console.log("✅ Respuesta recibida:", response.data);
+
+        const url = response.data.imageUrl;
+
+        if (url) {
+          setImageUrl(url);
+        } else {
+          console.warn("⚠️ No se recibió imageUrl válido.");
+        }
+      } catch (err) {
+        console.error("❌ Error al obtener la imagen:", err);
+        alert("No se pudo obtener la imagen.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImageUrl();
   }, [searchParams]);
 
   if (loading) {
