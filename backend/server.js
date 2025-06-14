@@ -5,6 +5,15 @@ const morgan = require("morgan");
 const helmet = require("helmet");
 const logger = require("./config/logger");
 require("./config/env"); // ✅ Carga y valida las variables de entorno
+const fs = require("fs");
+
+const UPLOAD_DIR = path.join(__dirname, "uploads");  // mismo que en multer
+
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  logger.info("📂  Carpeta 'uploads/' creada automáticamente");
+}
+
 
 const errorHandler = require("./middlewares/errorHandler.middleware");
 

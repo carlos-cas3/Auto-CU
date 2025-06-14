@@ -5,6 +5,7 @@ require("dotenv").config();
 const REQUIRED_VARS = [
     "N8N_WEBHOOK_URL",
     "N8N_WEBHOOK_URL_PROD",
+    "N8N_BASE_URL",
     "SUPABASE_BUCKET",
     "SUPABASE_URL",
     "SUPABASE_KEY",
@@ -24,6 +25,7 @@ validateVarsEnv();
 module.exports = {
     N8N_WEBHOOK_URL: process.env.N8N_WEBHOOK_URL,
     N8N_WEBHOOK_URL_PROD: process.env.N8N_WEBHOOK_URL_PROD,
+    N8N_BASE_URL: process.env.N8N_BASE_URL,
     SUPABASE_BUCKET: process.env.SUPABASE_BUCKET,
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_KEY: process.env.SUPABASE_KEY,

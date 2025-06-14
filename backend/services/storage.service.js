@@ -1,6 +1,6 @@
 const logger = require("../config/logger");
 const { readFile } = require("fs/promises");
-const pLimit = require("p-limit");
+const pLimit = require("p-limit").default
 const { supabase } = require("../config/supabase");
 const { SUPABASE_BUCKET } = require("../config/env");
 const { generateStoredName } = require("../utils/filenameHelper");
@@ -15,7 +15,7 @@ async function uploadSingle(file) {
     logger.debug(`Subiendo ${storedName} -> BUCKET ${SUPABASE_BUCKET}`);
 
     const { error } = await supabase.storage
-        .from(BUCKET_NAME)
+        .from(SUPABASE_BUCKET)
         .upload(storedName, buffer, {
             contentType: file.mimetype,
             upsert: false,
