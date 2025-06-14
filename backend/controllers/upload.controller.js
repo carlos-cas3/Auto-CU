@@ -1,68 +1,65 @@
-  // controllers/upload.controller.js
-  const { verificarWebhookActivo } = require("../utils/webHookTriggerCheck");
-  const { subirArchivosASupabase, eliminarArchivoSupabase } = require("../services/storage.service");
-  const { sendToN8N } = require("../services/n8n.service");
-  const { cleanupFiles } = require("../utils/fileHelper");
-  const FormData = require("form-data");
+// controllers/upload.controller.js
+const path = require("path");
+const logger = require("../config/logger");
+const { n8nHealthy } = require("../utils/n8nHealth");
+const { subirArchivosASupabase, eliminarArchivoSupabase } = require("../services/storage.service");
+const { createStory } = require("../services/story.service");        // ← nombre coherente
+const { sendToN8N } = require("../services/n8n.service");
+const { cleanupFiles } = require("../utils/fileUtils");
+const { N8N_BASE_URL, N8N_WEBHOOK_URL } = require("../config/env");  // exportados desde env.js
 
-  exports.subirYEnviarArchivos = async (req, res) => {
-  if (!req.files || req.files.length === 0) {
+exports.subirHistoria = async (req, res, next) => {
+    logger.debug("📦 req.files recibido:", req.files);
+  logger.debug("📝 req.body recibido:", req.body);/*  */
+  if (!req.files?.length) {
     return res.status(400).json({ mensaje: "No se proporcionaron archivos." });
   }
 
-  // 🔄 Determinar URL según entorno
-  const entorno = process.env.N8N_ENV;
-  const webhookUrl = entorno === "production"
-    ? process.env.N8N_WEBHOOK_URL_PROD
-    : process.env.N8N_WEBHOOK_URL_TEST;
+  let archivosSubidos = [];
 
   try {
-    console.log("🔍 Verificando si el webhook está activo...");
-    const webhookActivo = await verificarWebhookActivo(webhookUrl);
-
-    if (!webhookActivo) {
-      console.warn("❌ Webhook inactivo. Deteniendo flujo.");
+    /* 1. Verificar salud de n8n ------------------------------------------------ */
+    logger.info("🔍 Verificando salud de n8n…");
+    if (!(await n8nHealthy(N8N_BASE_URL))) {
       cleanupFiles(req.files);
-      return res.status(503).json({ mensaje: "El webhook de N8N no está activo." });
+      return res.status(503).json({ mensaje: "n8n no disponible. Inténtelo más tarde." });
     }
 
-    console.log("✅ Webhook activo. Procediendo con la subida a Supabase...");
+    /* 2. Subir archivos a Supabase ------------------------------------------- */
+    logger.info("⏫ Subiendo archivos a Supabase…");
+    archivosSubidos = await subirArchivosASupabase(req.files);
+    logger.debug("📦 Despues req.files:", req.files);
+    if (archivosSubidos.length === 0) throw new Error("No se pudo subir ningún archivo.");
 
-    const archivosSubidos = await subirArchivosASupabase(req.files);
-    const metadatos = archivosSubidos.map((archivo) => ({
-      nombreOriginal: archivo.originalName,
-      nombreGuardado: archivo.storedName,
-      urlPublica: archivo.publicURL,
-      extension: archivo.originalName.split(".").pop(),
-    }));
-    
+    // Asumimos un solo archivo por historia
+    const archivo = archivosSubidos[0];
 
-
-    const form = new FormData();
-    form.append("metadatos", JSON.stringify(metadatos));
-
-    console.log("📤 Enviando metadatos al webhook N8N...");
-    await sendToN8N(form, webhookUrl); // pasa url explícita
-
-    cleanupFiles(req.files);
-
-    res.status(200).json({
-      mensaje: "Archivos subidos a Supabase y metadatos enviados a N8N.",
-      metadatos,
+    /* 3. Insertar historia en la BD ------------------------------------------ */
+    logger.info("📝 Insertando registro en user_stories…");
+    const historia = await createStory({
+      title         : req.body.titulo || archivo.originalname,
+      file_url      : archivo.publicURL,
+      file_extension: path.extname(archivo.originalname).slice(1), // pdf, docx, etc.
     });
 
-  } catch (error) {
-    console.error("❌ Error en el flujo completo:", error.message);
+    /* 4. Enviar story_id a n8n ------------------------------------------------ */
+    logger.info(`📤 Enviando story_id ${historia.id} a n8n…`);
+    await sendToN8N({ story_id: historia.id }, N8N_WEBHOOK_URL);
 
-    if (Array.isArray(req.files)) {
-      for (const file of req.files) {
-        try {
-          await eliminarArchivoSupabase(file.storedName);
-        } catch (_) {}
-      }
-    }
-
+    /* 5. Limpieza y respuesta ------------------------------------------------- */
     cleanupFiles(req.files);
-    res.status(500).json({ mensaje: "Error al subir o enviar archivos.", error: error.message });
+    return res.status(201).json({
+      story_id: historia.id,
+      file_url: archivo.publicURL,
+    });
+
+  } catch (err) {
+    /* Rollback de lo subido a Supabase si algo falló ------------------------- */
+    logger.error("❌ Error en flujo de subida:", err);
+    for (const a of archivosSubidos) {
+      try { await eliminarArchivoSupabase(a.storedName); } catch (_) {}
+    }
+    cleanupFiles(req.files);
+    return next(err);   // delega al middleware global de errores
   }
 };
