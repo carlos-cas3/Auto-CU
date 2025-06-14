@@ -1,72 +1,67 @@
-const fs = require("fs");
+const logger = require("../config/logger");
+const { readFile } = require("fs/promises");
+const pLimit = require("p-limit");
 const { supabase } = require("../config/supabase");
+const { SUPABASE_BUCKET } = require("../config/env");
+const { generateStoredName } = require("../utils/filenameHelper");
 
-const BUCKET_NAME = process.env.SUPABASE_BUCKET;
+const CONCURRENCY = 3; /* Maximo archivos en paralelo */
+const limit = pLimit(CONCURRENCY);
 
-if (!BUCKET_NAME) {
-  throw new Error("SUPABASE_BUCKET no está definido en el archivo .env");
+async function uploadSingle(file) {
+    const buffer = await readFile(file.path);
+    const storedName = generateStoredName(file.originalName);
+
+    logger.debug(`Subiendo ${storedName} -> BUCKET ${SUPABASE_BUCKET}`);
+
+    const { error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(storedName, buffer, {
+            contentType: file.mimetype,
+            upsert: false,
+        });
+
+    /* Obtener URL pública (si el bucket es público) */
+    const { data: pubData } = supabase.storage
+        .from(SUPABASE_BUCKET)
+        .getPublicUrl(storedName);
+
+    return {
+        originalName: file.originalname,
+        storedName,
+        publicURL: pubData?.publicUrl || null,
+    };
 }
 
-async function subirArchivoASupabase(file) {
-  const fileContent = fs.readFileSync(file.path);
-  const fileName = `${Date.now()}_${file.originalname}`;
-
-  console.log(`📤 Subiendo archivo a bucket "${BUCKET_NAME}": ${fileName}`);
-
-  const { data, error } = await supabase
-    .storage
-    .from(BUCKET_NAME)
-    .upload(fileName, fileContent, {
-      contentType: file.mimetype,
-      upsert: false,
-    });
-
-  if (error) {
-    console.error("❌ Error al subir a Supabase:", error.message);
-    throw error;
-  }
-
-  const { data: publicData, error: urlError } = supabase
-    .storage
-    .from(BUCKET_NAME)
-    .getPublicUrl(fileName);
-
-  if (urlError) {
-    console.warn("⚠️ Error obteniendo URL pública:", urlError.message);
-  }
-
-  return {
-    originalName: file.originalname,
-    storedName: fileName,
-    path: data?.path ?? "",
-    publicURL: publicData?.publicUrl ?? null,
-  };
-}
-
+/* Sube archivos en paralelo, devuelve solo los que se suben con exito */
 async function subirArchivosASupabase(files) {
-  const resultados = [];
-  for (const file of files) {
-    try {
-      const info = await subirArchivoASupabase(file);
-      resultados.push(info);
-    } catch (err) {
-      console.warn(`⚠️ Falló al subir archivo ${file.originalname}:`, err.message);
-    }
-  }
-  return resultados;
+    const tasks = files.map((f) =>
+        limit(() =>
+            uploadSingle(f).catch((err) => {
+                logger.warn(`⚠️ Falló ${f.originalname}: ${err.message}`);
+                return null; // Devolvemos null si falla uno
+            })
+        )
+    );
+
+    const results = await Promise.all(tasks);
+    return results.filter(Boolean); // Filtra los null
 }
 
-async function eliminarArchivoSupabase(fileName) {
-  const { error } = await supabase.storage.from(BUCKET_NAME).remove([fileName]);
-  if (error) {
-    console.warn(`⚠️ Error al eliminar ${fileName} de Supabase:`, error.message);
-  } else {
-    console.log(`🗑️ Archivo eliminado del bucket: ${fileName}`);
-  }
+/* Elimina un objecto del bucket por su nombre */
+async function eliminarArchivoSupabase(storedName) {
+    const { error } = await supabase.storage
+        .from(SUPABASE_BUCKET)
+        .remove([storedName]);
+
+    if (error) {
+        logger.warn(`⚠️ No se pudo eliminar ${storedName}: ${error.message}`);
+    } else {
+        logger.debug(`🗑️ Eliminado: ${storedName}`);
+    }
 }
 
 module.exports = {
-  subirArchivoASupabase,
-  subirArchivosASupabase,
-  eliminarArchivoSupabase,
+    subirArchivosASupabase,
+    eliminarArchivoSupabase,
 };
