@@ -37,9 +37,9 @@ exports.subirHistoria = async (req, res, next) => {
     /* 3. Insertar historia en la BD ------------------------------------------ */
     logger.info("📝 Insertando registro en user_stories…");
     const historia = await createStory({
-      title         : req.body.titulo || archivo.originalName,
+      title         : req.body.titulo || archivo.originalname,
       file_url      : archivo.publicURL,
-      file_extension: path.extname(archivo.originalName).slice(1), // pdf, docx, etc.
+      file_extension: path.extname(archivo.originalname).slice(1), // pdf, docx, etc.
     });
 
     /* 4. Enviar story_id a n8n ------------------------------------------------ */

@@ -10,7 +10,7 @@ const limit = pLimit(CONCURRENCY);
 
 async function uploadSingle(file) {
     const buffer = await readFile(file.path);
-    const storedName = generateStoredName(file.originalName);
+    const storedName = generateStoredName(file.originalname);
 
     logger.debug(`Subiendo ${storedName} -> BUCKET ${SUPABASE_BUCKET}`);
 
@@ -27,7 +27,7 @@ async function uploadSingle(file) {
         .getPublicUrl(storedName);
 
     return {
-        originalName: file.originalname,
+        originalname: file.originalname,
         storedName,
         publicURL: pubData?.publicUrl || null,
     };
