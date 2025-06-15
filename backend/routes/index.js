@@ -8,6 +8,7 @@ const storyRoutes = require("./story.routes")
 
 router.use("/upload", uploadRoutes);
 router.use("/n8n", n8nRoutes);
+
 router.use("/story", storyRoutes); //  GET /api/story/:id
 
 module.exports = router;
