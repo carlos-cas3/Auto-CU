@@ -44,7 +44,7 @@ exports.subirHistoria = async (req, res, next) => {
 
     /* 4. Enviar story_id a n8n ------------------------------------------------ */
     logger.info(`📤 Enviando story_id ${historia.id} a n8n…`);
-    await sendToN8N({ story_id: historia.id }, N8N_WEBHOOK_URL);
+    await sendToN8N(historia.id);
 
     /* 5. Limpieza y respuesta ------------------------------------------------- */
     cleanupFiles(req.files);
