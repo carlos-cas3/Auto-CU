@@ -1,18 +1,18 @@
 from sentence_transformers import SentenceTransformer
+from .database import insert_embedding
 
-# Modelo preentrenado
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Tus textos a vectorizar (requisitos, casos de uso, etc.)
-texts = [
-    "poder registrarme en el sistema",
-    "guardar mi información de pago",
-    "consultar mi historial de pedidos",
-    "recibir notificaciones de promociones"
-]
+async def generate_and_store_embeddings(client, story_id, texts, types, ids):
+    vectors = model.encode(texts)
 
-# Obtener embeddings (devuelve lista de vectores)
-embeddings = model.encode(texts)
-
-# Puedes imprimir el vector de la primera frase
-print(embeddings[0])
+    for text, tipo, source_id, vector in zip(texts, types, ids, vectors):
+        payload = {
+            "story_id": story_id,
+            "source_table": tipo,
+            "source_id": source_id,
+            "embedding": vector.tolist()
+        }
+        response = await insert_embedding(client, payload)
+        if response.status_code >= 400:
+            print(f"❌ Error al insertar embedding: {response.text}")
