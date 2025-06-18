@@ -4,6 +4,7 @@ from app.schemas import DocumentInput, ExtractionOutput
 from app.services.extractor import extract_from_text
 from app.services.embeddings import generate_and_store_embeddings
 from app.services.database import insert_functional_requirement, insert_use_case
+from app.services.clustering import cluster_and_update
 
 import httpx
 
@@ -41,6 +42,12 @@ async def analyze_document(data: DocumentInput):
         await generate_and_store_embeddings(client, data.story_id, textos, tipos, ids)
 
     return output
+
+@app.get("/cluster/{story_id}")
+async def run_clustering(story_id: str):
+    await cluster_and_update(story_id)
+    return {"status": f"Clustering para story {story_id} completado."}
+
 
 @app.get("/")
 async def root():

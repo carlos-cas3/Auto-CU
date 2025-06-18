@@ -7,12 +7,24 @@ llm = OllamaLLM(model="llama3")
 
 def clean_lines(raw_output: str) -> list[str]:
     lines = raw_output.strip().split("\n")
-    return [
-        line.strip("1234567890.-* ").strip()
-        for line in lines
-        if line.strip()
-        and not line.lower().startswith(("aquí", "estos son", "casos de uso", "requisitos funcionales"))
-    ]
+    cleaned = []
+
+    for line in lines:
+        line = line.strip("1234567890.-* ").strip()
+
+        if not line:
+            continue
+        if any(phrase in line.lower() for phrase in [
+            "here is", "here are", "estos son", "este es", 
+            "casos de uso", "requisitos funcionales", "output", "salida"
+        ]):
+            continue
+
+        cleaned.append(line)
+
+    return cleaned
+
+
 
 
 async def extract_from_text(content: str, story_id: str) -> ExtractionOutput:

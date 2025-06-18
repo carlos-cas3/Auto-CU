@@ -7,3 +7,6 @@ langchain
 langchain-ollama
 langchain-community
 sentence-transformers
+numpy
+matplotlib
+scikit-learn

@@ -33,3 +33,5 @@ build/
 *.tmp
 
 langchain-ai/
+
+analysis/
