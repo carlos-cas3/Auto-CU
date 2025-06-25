@@ -1,6 +1,7 @@
 from utils.cleaning import clean_user_story 
-from app.services.extractor import extract_requirements_and_use_cases, normalize_text
+from app.services.extractor import extract_requirements_and_use_cases, normalize_text, normalize_and_validate
 from app.services.parser import parse_requirements, parse_use_cases
+import time
 
 def process_user_story(raw_text: str) -> dict:
     # 1. Limpieza
@@ -15,11 +16,12 @@ def process_user_story(raw_text: str) -> dict:
     rf_list = parse_requirements(raw_reqs)
     cu_list = parse_use_cases(raw_cases)
 
-    # 4. Normalización
-    # 4. Normalización con LLM
-    for item in rf_list + cu_list:
-        item["neutral"] = normalize_text(item["text"])
+    # 4. Normalización + Validación (hasta 3 intentos)
+    for item in rf_list:
+        item["neutral"], item["validation"] = normalize_and_validate(item["text"], "functional requirement")
 
+    for item in cu_list:
+        item["neutral"], item["validation"] = normalize_and_validate(item["text"], "use case")
 
 
     return {
@@ -29,6 +31,7 @@ def process_user_story(raw_text: str) -> dict:
         "parsed_rf": rf_list,
         "parsed_cu": cu_list
     }
+
 
 """ 
 
