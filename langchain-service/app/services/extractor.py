@@ -1,51 +1,23 @@
-import asyncio
 from langchain_ollama import OllamaLLM
-from app.schemas import ExtractionOutput
-from app.prompts.extraction import get_prompt_reqs, get_prompt_cases
+from app.prompts.extraction import get_prompt_reqs, get_prompt_cases, get_prompt_normalization
 
 llm = OllamaLLM(model="llama3")
 
-def clean_lines(raw_output: str) -> list[str]:
-    lines = raw_output.strip().split("\n")
-    cleaned = []
 
-    for line in lines:
-        line = line.strip("1234567890.-* ").strip()
+def extract_requirements_and_use_cases(text: str) -> dict:
+    prompt_reqs = get_prompt_reqs(text)
+    prompt_cases = get_prompt_cases(text)
 
-        if not line:
-            continue
-        if any(phrase in line.lower() for phrase in [
-            "here is", "here are", "estos son", "este es", 
-            "casos de uso", "requisitos funcionales", "output", "salida"
-        ]):
-            continue
+    output_reqs = llm.invoke(prompt_reqs)
+    output_cases = llm.invoke(prompt_cases)
 
-        cleaned.append(line)
-
-    return cleaned
+    return {
+        "functional_requirements": output_reqs,
+        "use_cases": output_cases
+    }
 
 
-
-
-async def extract_from_text(content: str, story_id: str) -> ExtractionOutput:
-    try:
-        print("📩 Recibido texto:", content[:100], "...")
-        prompt_reqs = get_prompt_reqs(content)
-        prompt_cases = get_prompt_cases(content)
-
-        reqs, cases = await asyncio.gather(
-            asyncio.to_thread(llm.invoke, prompt_reqs),
-            asyncio.to_thread(llm.invoke, prompt_cases)
-        )
-
-        print("✅ Respuesta del modelo:")
-        print("Requisitos:\n", reqs)
-        print("Casos de uso:\n", cases)
-
-        return ExtractionOutput(
-            functional_requirements=clean_lines(reqs),
-            use_cases=clean_lines(cases)
-        )
-    except Exception as e:
-        print("❌ Error en extractor:", str(e))
-        raise e
+def normalize_text(text: str) -> str:
+    prompt = get_prompt_normalization(text)
+    response = llm.invoke(prompt)
+    return response.strip()
