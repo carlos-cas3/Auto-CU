@@ -1,17 +1,56 @@
-# app/services/extractor.py
-from langchain_ollama.llms import OllamaLLM
-from app.schemas import ExtractionOutput
+from langchain_ollama import OllamaLLM
+import json
+from app.prompts.extraction import get_prompt_reqs, get_prompt_cases, get_prompt_normalization
+from app.services.syntactic_validator import validate_syntactically
+import time
+import re
 
 llm = OllamaLLM(model="llama3")
 
-def extract_from_text(content: str, story_id: str) -> ExtractionOutput:
-    prompt_reqs = f"Extrae los requisitos funcionales de este texto:\n{content}"
-    prompt_cases = f"Extrae los casos de uso de este texto:\n{content}"
 
-    reqs = llm.invoke(prompt_reqs)
-    cases = llm.invoke(prompt_cases)
+def extract_requirements_and_use_cases(text: str) -> dict:
+    prompt_reqs = get_prompt_reqs(text)
+    prompt_cases = get_prompt_cases(text)
 
-    return ExtractionOutput(
-        functional_requirements=reqs.strip().split("\n"),
-        use_cases=cases.strip().split("\n")
-    )
+    output_reqs = llm.invoke(prompt_reqs)
+    output_cases = llm.invoke(prompt_cases)
+
+    return {
+        "functional_requirements": output_reqs,
+        "use_cases": output_cases
+    }
+
+def preprocess_normalized_text(text: str) -> str:
+    import re
+
+    # Eliminar prefijos innecesarios
+    text = re.sub(r"(?i)^here\s+(is|are)\s+(the\s+)?normalized\s+(system\s+)?(behavior|behaviors|sentence)[:\n]*", "", text)
+
+    # Eliminar viñetas o números
+    text = re.sub(r"^\s*[\-\•\d\.]+\s*", "", text)
+
+    # Eliminar líneas vacías
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    text = " ".join(lines)
+
+    return text.strip()
+
+
+
+
+def normalize_text(text: str) -> str:
+    prompt = get_prompt_normalization(text)
+    time.sleep(5)
+    response = llm.invoke(prompt)
+    return response.strip()
+
+def normalize_and_validate(text: str, entry_type: str, max_attempts: int = 3) -> tuple[str, dict]:
+    for attempt in range(max_attempts):
+        normalized = normalize_text(text)
+        validation = validate_syntactically(normalized)
+
+        if validation.get("valid"):
+            return normalized, validation
+
+    validation["reasoning"] += " | Flagged for manual review"
+    return normalized, validation  # ← Este return debe estar sí o sí

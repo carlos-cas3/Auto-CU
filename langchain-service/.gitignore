@@ -1,1 +1,38 @@
+# Entorno virtual
+venv/
 .env
+.env.*  # Para archivos como .env.dev o .env.local
+
+# Archivos de Python compilados
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Archivos de logs
+*.log
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuración de editores/IDE
+.vscode/
+.idea/
+
+# Archivos de dependencias de pip freeze (mantener si los usas)
+# requirements.txt
+
+# Otros posibles cachés
+*.egg-info/
+dist/
+build/
+
+# Archivos temporales
+*.swp
+*.bak
+*.tmp
+
+langchain-ai/
+
+analysis/
+
