@@ -67,30 +67,3 @@ def get_prompt_normalization(text: str) -> str:
         "- Return ONLY the normalized sentences. DO NOT include any comments or extra text:"
         )
 
-
-
-def get_prompt_validation_prompt(entry_type: str, normalized_text: str) -> str:
-    return (
-        f"You are an AI assistant for validating atomic {entry_type} sentences.\n\n"
-        "INSTRUCTIONS:\n"
-        "- Validate ONLY if the sentence meets all required structural rules\n"
-        "- Do NOT include explanations, comments, or headers\n"
-        "- Return ONLY a single JSON object with keys: valid, violations, reasoning\n"
-        "- Do NOT return markdown, code blocks, or introductory text\n\n"
-        "RULES:\n"
-        "- Sentence must describe only system behavior\n"
-        "- Must begin with an infinitive verb (e.g., validate, store, generate)\n"
-        "- Must not contain any reference to humans or roles (e.g., user, teacher, patient)\n"
-        "- Must not include modal verbs (must, shall, should, may)\n"
-        "- Must be a single sentence, maximum 15 words\n"
-        "- Must not include any extra text like: 'Here is the normalized sentence' or similar\n\n"
-        "FORMAT:\n"
-        "{\n"
-        '  "valid": true or false,\n'
-        '  "violations": ["list of failed rules"],\n'
-        '  "reasoning": "short explanation of what was wrong (if any)"\n'
-        "}\n\n"
-        f"The following sentence is the normalized {entry_type} to validate:\n"
-        f"\"{normalized_text}\"\n\n"
-        "Return ONLY the JSON object. DO NOT include headers, explanations, or any additional text."
-    )

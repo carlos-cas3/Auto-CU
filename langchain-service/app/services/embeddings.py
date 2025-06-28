@@ -1,24 +1,23 @@
-from app.services.embeddings import (
-    generate_embeddings, apply_clustering,
-    evaluate_cluster_similarity, filter_valid_clusters, visualize_clusters
-)
+from sentence_transformers import SentenceTransformer
+import hdbscan
 
-# Paso 1: Embeddings
-texts = df_combined["neutral"].tolist()
-vectors = generate_embeddings(texts)
+model = SentenceTransformer("all-mpnet-base-v2")
 
-# Paso 2: Clustering
-labels, probs, embedding_2d = apply_clustering(vectors)
+def compute_embeddings_and_clusters(combined_data: list, min_cluster_size=2) -> list:
+    texts = [item["neutral"] for item in combined_data]
+    embeddings = model.encode(texts, show_progress_bar=True)
 
-# Paso 3: Guardar resultados en el dataframe
-df_combined["cluster"] = labels
-df_combined["cluster_prob"] = probs
+    clusterer = hdbscan.HDBSCAN(
+        min_cluster_size=min_cluster_size,
+        min_samples=1,
+        metric="euclidean"
+    )
+    labels = clusterer.fit_predict(embeddings)
+    probs = clusterer.probabilities_
 
-# Paso 4: Evaluación de calidad
-evaluate_cluster_similarity(df_combined, texts, model)
+    # Añadir cluster y probabilidad a cada elemento
+    for i, item in enumerate(combined_data):
+        item["cluster"] = int(labels[i])
+        item["cluster_prob"] = float(probs[i])
 
-# Paso 5: Filtrar clusters válidos
-df_combined = filter_valid_clusters(df_combined)
-
-# Paso 6: Visualización
-visualize_clusters(df_combined, embedding_2d)
+    return combined_data
