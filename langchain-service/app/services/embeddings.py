@@ -15,9 +15,10 @@ def compute_embeddings_and_clusters(combined_data: list, min_cluster_size=2) -> 
     labels = clusterer.fit_predict(embeddings)
     probs = clusterer.probabilities_
 
-    # Añadir cluster y probabilidad a cada elemento
+    # Añadir cluster, probabilidad y el embedding a cada item
     for i, item in enumerate(combined_data):
         item["cluster"] = int(labels[i])
         item["cluster_prob"] = float(probs[i])
+        item["embedding"] = embeddings[i].tolist()  # Esta línea es clave
 
     return combined_data

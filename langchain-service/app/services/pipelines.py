@@ -3,6 +3,7 @@ from app.services.extractor import extract_requirements_and_use_cases, normalize
 from app.services.parser import parse_requirements, parse_use_cases
 from app.services.embeddings import compute_embeddings_and_clusters
 from app.services.grouping import group_by_cluster_with_original
+from app.services.test_case_generator import generate_all_test_cases
 import time
 
 def process_user_story(raw_text: str, verbose: bool = True) -> dict:
@@ -65,6 +66,17 @@ def process_user_story(raw_text: str, verbose: bool = True) -> dict:
     embedded = compute_embeddings_and_clusters(combined)
     grouped_clusters = group_by_cluster_with_original(embedded)
 
+    # 6. Agrupación de Clusters Mixtos
+    mixed_clusters = {}
+    for cluster_id, items in grouped_clusters.items():
+        types_in_cluster = set(item['type'] for item in items)
+        if 'CU' in types_in_cluster and 'RF' in types_in_cluster:
+            mixed_clusters[cluster_id] = items
+
+    # 7. Generar Casos de Prueba con IA (LLaMA 3 via Ollama)
+    test_cases = generate_all_test_cases(mixed_clusters, threshold=0.4)
+    
+
     return {
         "cleaned_text": cleaned,
         "parsed_rf": rf_list,
@@ -74,5 +86,7 @@ def process_user_story(raw_text: str, verbose: bool = True) -> dict:
         "valid_cu": valid_cu,
         "invalid_cu": invalid_cu,
         "embedded": embedded,
-        "grouped_clusters": grouped_clusters
-        }
+        "grouped_clusters": grouped_clusters,
+        "mixed_clusters": mixed_clusters,
+        "test_cases": test_cases
+    }
