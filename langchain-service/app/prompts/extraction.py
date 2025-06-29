@@ -19,9 +19,6 @@ def get_prompt_reqs(content: str) -> str:
         "Return ONLY the numbered list of requirements. DO NOT explain or comment on the output:"
         )
 
-
-
-
 def get_prompt_cases(content: str) -> str:
     return (
         "You are an AI specialized in extracting atomic software use cases for semantic clustering.\n\n"
@@ -42,9 +39,6 @@ def get_prompt_cases(content: str) -> str:
         f"The following content has already been extracted. Normalize it according to the rules:\n{content}\n\n"
         "Return ONLY the numbered list of use cases. DO NOT explain or comment on the output:"
         )
-
-
-
 
 def get_prompt_normalization(text: str) -> str:
     return (

@@ -20,24 +20,6 @@ def extract_requirements_and_use_cases(text: str) -> dict:
         "use_cases": output_cases
     }
 
-def preprocess_normalized_text(text: str) -> str:
-    import re
-
-    # Eliminar prefijos innecesarios
-    text = re.sub(r"(?i)^here\s+(is|are)\s+(the\s+)?normalized\s+(system\s+)?(behavior|behaviors|sentence)[:\n]*", "", text)
-
-    # Eliminar viñetas o números
-    text = re.sub(r"^\s*[\-\•\d\.]+\s*", "", text)
-
-    # Eliminar líneas vacías
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    text = " ".join(lines)
-
-    return text.strip()
-
-
-
-
 def normalize_text(text: str) -> str:
     prompt = get_prompt_normalization(text)
     time.sleep(5)
