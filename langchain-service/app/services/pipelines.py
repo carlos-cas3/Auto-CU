@@ -74,8 +74,7 @@ def process_user_story(raw_text: str, verbose: bool = True) -> dict:
             mixed_clusters[cluster_id] = items
 
     # 7. Generar Casos de Prueba con IA (LLaMA 3 via Ollama)
-    test_cases = generate_all_test_cases(mixed_clusters, threshold=0.5)
-
+    test_cases = generate_all_test_cases(mixed_clusters, threshold=0.4)
     
 
     return {
@@ -88,6 +87,6 @@ def process_user_story(raw_text: str, verbose: bool = True) -> dict:
         "invalid_cu": invalid_cu,
         "embedded": embedded,
         "grouped_clusters": grouped_clusters,
-        "mixed_clusters": mixed_clusters,            # ✅ agregado
-        "test_cases": test_cases                     # ✅ agregado
+        "mixed_clusters": mixed_clusters,
+        "test_cases": test_cases
     }
