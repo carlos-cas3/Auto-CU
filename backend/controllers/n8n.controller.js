@@ -3,21 +3,34 @@ const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
+const langchainService = require("../services/langchain.service")
 
-exports.processStoryFromN8N = (req, res) => {
+
+exports.processStoryFromN8N = async (req, res) => {
   const { content, story_id } = req.body;
 
-  if (!story_id) {
-    return res.status(400).json({ error: "Falta story_id en el cuerpo de la solicitud" });
+  if (!story_id || !content) {
+    return res.status(400).json({ error: "Faltan campos requeridos (story_id o content)" });
   }
 
-  console.log("📝 content:", content.slice(0, 200));
-  console.log("🆔 story_id:", story_id);
+  console.log("📩 Historia recibida:", story_id);
+  console.log("📝 Contenido (truncado):", content.slice(0, 200));
 
-  // Aquí llamarías a tus servicios (ej. análisis, guardar en Supabase, etc.)
+  try {
+    const langchainResult = await langchainService.sendToLangchain(content);
 
-  res.status(200).json({ message: "Recibido correctamente", received: true });
+    return res.status(200).json({
+      message: "Historia procesada exitosamente",
+      test_cases: langchainResult.test_cases,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: "Error al procesar historia",
+      details: err.message,
+    });
+  }
 };
+
 
 /* exports.getImageUrl = async (req, res) => {
   const { id } = req.params;
