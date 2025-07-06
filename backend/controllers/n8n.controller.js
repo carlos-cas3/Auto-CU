@@ -4,6 +4,7 @@ const path = require("path");
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
 const langchainService = require("../services/langchain.service")
+const testGenService = require("../services/test_generation.service");
 
 
 exports.processStoryFromN8N = async (req, res) => {
@@ -19,11 +20,14 @@ exports.processStoryFromN8N = async (req, res) => {
   try {
     const langchainResult = await langchainService.sendToLangchain(content);
 
+    const saved = await testGenService.saveLangchainResults(story_id, langchainResult);
+
     return res.status(200).json({
-      message: "Historia procesada exitosamente",
-      test_cases: langchainResult.test_cases,
+      message: "Historia procesada y guardada exitosamente",
+      ...saved,
     });
   } catch (err) {
+    console.error("❌ Error en procesamiento:", err);
     return res.status(500).json({
       error: "Error al procesar historia",
       details: err.message,
