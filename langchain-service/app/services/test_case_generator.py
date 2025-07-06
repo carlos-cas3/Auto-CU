@@ -1,9 +1,11 @@
 from sklearn.metrics.pairwise import cosine_similarity
 from app.prompts.test_case import generate_test_case_prompt
 import numpy as np
-from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
+from app.llm_config import get_llm
 
-llm = Ollama(model="llama3")
+llm = get_llm()
+
 
 
 def match_cu_rf_by_similarity(cluster_items, threshold=0.6):
