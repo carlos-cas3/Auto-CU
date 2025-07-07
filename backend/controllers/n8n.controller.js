@@ -3,67 +3,40 @@ const fs = require("fs");
 const path = require("path");
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
+const langchainService = require("../services/langchain.service")
+const testGenService = require("../services/test_generation.service");
 
-exports.receiveFromN8N = async (req, res) => {
-  const { id } = req.body;
 
-  if (!id) {
-    return res.status(400).json({ error: "Falta el ID en el cuerpo de la solicitud" });
+exports.processStoryFromN8N = async (req, res) => {
+  const { content, story_id } = req.body;
+
+  if (!story_id || !content) {
+    return res.status(400).json({ error: "Faltan campos requeridos (story_id o content)" });
   }
 
-  const { data, error } = await supabase
-    .from("diagrams")
-    .select("plantuml_text")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    console.error("❌ Error al consultar Supabase:", error);
-    return res.status(500).json({ error: "Error al consultar la base de datos" });
-  }
-
-  if (!data) {
-    return res.status(404).json({ error: "No se encontró un diagrama con ese ID" });
-  }
-
-  const folderPath = path.join(__dirname, "..", "..", "docs", "casos_uso");
-  const filePath = path.join(folderPath, `${id}.puml`);
+  console.log("📩 Historia recibida:", story_id);
+  console.log("📝 Contenido (truncado):", content.slice(0, 200));
 
   try {
-    await fs.promises.mkdir(folderPath, { recursive: true });
-    await fs.promises.writeFile(filePath, data.plantuml_text);
-    console.log(`✅ Archivo .puml guardado en: ${filePath}`);
+    const langchainResult = await langchainService.sendToLangchain(content);
 
-    const dockerCmd = `docker run --rm -v "${folderPath}:/workspace" plantuml/plantuml -tpng /workspace/${id}.puml`;
-    await exec(dockerCmd);
+    const saved = await testGenService.saveAnalyzeOutput(story_id, langchainResult);
 
-    const imageUrl = `http://localhost:5000/imagenes/${id}.png`;
-
-    const { error: updateError } = await supabase
-      .from("diagrams")
-      .update({ image_url: imageUrl })
-      .eq("id", id);
-
-    if (updateError) {
-      console.error("❌ Error al actualizar la URL de la imagen en Supabase:", updateError);
-      return res.status(500).json({ error: "Error al actualizar la URL de la imagen en la base de datos" });
-    }
-
-    console.log(`✅ Imagen PNG generada: ${id}.png`);
-    return res.json({
-      message: "Archivo .puml y .png generados correctamente",
-      imageUrl,
-      id
+    return res.status(200).json({
+      message: "Historia procesada y guardada exitosamente",
+      ...saved,
     });
-
   } catch (err) {
-    console.error("❌ Error en el proceso:", err);
-    return res.status(500).json({ error: "Error en el procesamiento del diagrama" });
+    console.error("❌ Error en procesamiento:", err);
+    return res.status(500).json({
+      error: "Error al procesar historia",
+      details: err.message,
+    });
   }
 };
 
 
-exports.getImageUrl = async (req, res) => {
+/* exports.getImageUrl = async (req, res) => {
   const { id } = req.params;
   console.log("🪪 ID recibido en backend:", id);
 
@@ -123,3 +96,4 @@ exports.getLastDiagramId = async (req, res) => {
     return res.status(500).json({ error: "Error interno del servidor" });
   }
 };
+ */

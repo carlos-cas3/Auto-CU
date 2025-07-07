@@ -1,7 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from app.services.pipelines import process_user_story
 from fastapi.middleware.cors import CORSMiddleware
+import sys
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+
 
 app = FastAPI()
 
@@ -20,8 +28,22 @@ class UserStoryRequest(BaseModel):
 
 @app.post("/analyze/")
 async def analyze_user_story(request: UserStoryRequest):
-    result = process_user_story(request.text)
+    logging.info("📥 [main.py] Recibido POST /analyze")
+    logging.info(f"📝 Texto recibido (primeros 200 caracteres): {request.text[:200]}")
 
-    return {
-        "test_cases": result["test_cases"]
-    }
+    try:
+        result = process_user_story(request.text)
+    except Exception as e:
+        logging.error("❌ Error durante el procesamiento:")
+        logging.exception(e)
+        raise HTTPException(status_code=500, detail="Error interno en el procesamiento")
+
+    logging.info("✅ [main.py] Proceso completado, devolviendo resultados.")
+    return {"test_cases": result["test_cases"]}
+
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+

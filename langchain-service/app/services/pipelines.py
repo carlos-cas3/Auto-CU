@@ -4,12 +4,19 @@ from app.services.parser import parse_requirements, parse_use_cases
 from app.services.embeddings import compute_embeddings_and_clusters
 from app.services.grouping import group_by_cluster_with_original
 from app.services.test_case_generator import generate_all_test_cases
+import logging
 import time
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 def process_user_story(raw_text: str, verbose: bool = True) -> dict:
     start = time.time()
 
     # 1. Limpieza
+    logging.info("🔧 [pipelines.py] Iniciando limpieza de texto...")
     cleaned = clean_user_story(raw_text)
 
     # 2. Extracción IA
@@ -62,6 +69,24 @@ def process_user_story(raw_text: str, verbose: bool = True) -> dict:
             "original": item["original"],
             "neutral": item["neutral"]
         })
+    
+    # 🛡️ Verificar que hay al menos 1 ítem antes de continuar
+    if not combined:
+        print("⚠️ No hay CU ni RF válidos para procesar.")
+        return {
+            "cleaned_text": cleaned,
+            "parsed_rf": rf_list,
+            "parsed_cu": cu_list,
+            "valid_rf": valid_rf,
+            "invalid_rf": invalid_rf,
+            "valid_cu": valid_cu,
+            "invalid_cu": invalid_cu,
+            "embedded": [],
+            "grouped_clusters": {},
+            "mixed_clusters": {},
+            "test_cases": []
+        }
+
 
     embedded = compute_embeddings_and_clusters(combined)
     grouped_clusters = group_by_cluster_with_original(embedded)
