@@ -1,6 +1,9 @@
-import os
-from langchain_ollama import OllamaLLM as Ollama
+from langchain_ollama import OllamaLLM
 
-def get_llm(model_name="llama3"):
-    base_url = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-    return Ollama(model=model_name, base_url=base_url)
+def get_llm(model_name="mistral"):
+    return OllamaLLM(
+        model=model_name,
+        base_url="http://localhost:11434",
+        streaming=True,
+        temperature=0.3
+    )

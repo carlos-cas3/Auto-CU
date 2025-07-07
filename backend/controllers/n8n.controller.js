@@ -20,7 +20,7 @@ exports.processStoryFromN8N = async (req, res) => {
   try {
     const langchainResult = await langchainService.sendToLangchain(content);
 
-    const saved = await testGenService.saveLangchainResults(story_id, langchainResult);
+    const saved = await testGenService.saveAnalyzeOutput(story_id, langchainResult);
 
     return res.status(200).json({
       message: "Historia procesada y guardada exitosamente",

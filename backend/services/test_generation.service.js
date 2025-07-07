@@ -1,13 +1,44 @@
 const { supabase } = require("../config/supabase");
 
-exports.saveLangchainResults = async (storyId, langchainResult) => {
+function buildCUandRF(test_cases) {
+    const cuMap = new Map();
+    const rfMap = new Map();
+
+    for (const { cu, rf } of test_cases) {
+        if (!cuMap.has(cu)) {
+            cuMap.set(cu, { original: cu, cleaned: null });
+        }
+        if (!rfMap.has(rf)) {
+            rfMap.set(rf, { original: rf, cleaned: null });
+        }
+    }
+
+    return {
+        valid_cu: [...cuMap.values()],
+        valid_rf: [...rfMap.values()],
+    };
+}
+
+exports.saveAnalyzeOutput = async (storyId, analyzeResult) => {
+    const { test_cases } = analyzeResult;
+    const { valid_cu, valid_rf } = buildCUandRF(test_cases);
+
+    // Reutilizar la función original para guardar
+    return await saveLangchainResults(storyId, {
+        valid_cu,
+        valid_rf,
+        test_cases,
+    });
+};
+
+// Puedes mover esta función si no está en el mismo archivo
+async function saveLangchainResults(storyId, langchainResult) {
     const { valid_cu, valid_rf, test_cases } = langchainResult;
 
     const cuMap = new Map(); // cu_text -> id
     const rfMap = new Map(); // rf_text -> id
     const testCaseMap = new Map(); // text -> id
 
-    // 1. Guardar Casos de Uso
     for (const cu of valid_cu) {
         const { data, error } = await supabase
             .from("use_case")
@@ -15,7 +46,7 @@ exports.saveLangchainResults = async (storyId, langchainResult) => {
                 {
                     story_id: storyId,
                     original_text: cu.original,
-                    cleaned_text: cu.cleaned,
+                    cleaned_text: cu.cleaned || null,
                 },
             ])
             .select("id")
@@ -25,7 +56,6 @@ exports.saveLangchainResults = async (storyId, langchainResult) => {
         cuMap.set(cu.original, data.id);
     }
 
-    // 2. Guardar Requisitos Funcionales
     for (const rf of valid_rf) {
         const { data, error } = await supabase
             .from("functional_requirement")
@@ -33,7 +63,7 @@ exports.saveLangchainResults = async (storyId, langchainResult) => {
                 {
                     story_id: storyId,
                     original_text: rf.original,
-                    cleaned_text: rf.cleaned,
+                    cleaned_text: rf.cleaned || null,
                 },
             ])
             .select("id")
@@ -43,7 +73,6 @@ exports.saveLangchainResults = async (storyId, langchainResult) => {
         rfMap.set(rf.original, data.id);
     }
 
-    // 3. Guardar Casos de Prueba y sus relaciones
     for (const tc of test_cases) {
         const { cu, rf, similarity, cluster, test_case } = tc;
 
@@ -66,7 +95,6 @@ exports.saveLangchainResults = async (storyId, langchainResult) => {
         const testCaseId = tcData.id;
         testCaseMap.set(test_case, testCaseId);
 
-        // Relaciones CU
         const cuId = cuMap.get(cu);
         if (cuId) {
             const { error } = await supabase
@@ -76,7 +104,6 @@ exports.saveLangchainResults = async (storyId, langchainResult) => {
                 throw new Error("Error relación CU-TC: " + error.message);
         }
 
-        // Relaciones RF
         const rfId = rfMap.get(rf);
         if (rfId) {
             const { error } = await supabase
@@ -97,4 +124,4 @@ exports.saveLangchainResults = async (storyId, langchainResult) => {
         requirements: [...rfMap.entries()],
         test_cases: [...testCaseMap.entries()],
     };
-};
+}

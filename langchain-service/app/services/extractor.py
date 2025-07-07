@@ -5,13 +5,23 @@ from app.services.syntactic_validator import validate_syntactically
 import time
 import re
 from app.llm_config import get_llm
+import logging
+# Configuración de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 llm = get_llm()
 
 def extract_requirements_and_use_cases(text: str) -> dict:
+    logging.info("🤖 [extractor.py] Invocando LLM para extraer requisitos...")
     prompt_reqs = get_prompt_reqs(text)
+
+    logging.info("🤖 [extractor.py] Invocando LLM para extraer casos de uso...")
     prompt_cases = get_prompt_cases(text)
 
+    
     output_reqs = llm.invoke(prompt_reqs)
     output_cases = llm.invoke(prompt_cases)
 
