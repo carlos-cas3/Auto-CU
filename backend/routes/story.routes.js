@@ -1,3 +1,5 @@
+// routes/story.routes.js
+
 const express = require("express");
 const router = express.Router();
 const { getStory } = require("../controllers/story.controller");
