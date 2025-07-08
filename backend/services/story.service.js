@@ -1,27 +1,44 @@
+// services/story.service.js
+
 const { supabase } = require("../config/supabase");
-
-/* Inserta y devuelve la fila completa, incluido el id generado */
-async function createStory({ title, file_url, file_extension }) {
-  const { data, error } = await supabase
-    .from("user_stories")
-    .insert([{ title, file_url, file_extension }])
-    .select()
-    .single();
-
-  if (error) throw new Error(error.message);
-  return data;          // { id, title, ... }
-}
 
 /** GET /story/:id */
 async function getStoryById(id) {
-  const { data, error } = await supabase
+  const { data: story, error: storyError } = await supabase
     .from("user_stories")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (error) throw new Error(error.message);
-  return data;
-}
+  if (storyError) throw new Error(storyError.message);
 
-module.exports = { createStory, getStoryById };
+  const { data: useCases, error: useCaseError } = await supabase
+    .from("use_case")
+    .select("*")
+    .eq("story_id", id);
+
+  if (useCaseError) throw new Error(useCaseError.message);
+
+  const { data: rfList, error: rfError } = await supabase
+    .from("functional_requirement")
+    .select("*")
+    .eq("story_id", id);
+
+  if (rfError) throw new Error(rfError.message);
+
+  const { data: testCases, error: testCaseError } = await supabase
+    .from("test_case")
+    .select("*")
+    .eq("story_id", id);
+
+  if (testCaseError) throw new Error(testCaseError.message);
+
+  return {
+    ...story,
+    use_cases: useCases,
+    functional_requirements: rfList,
+    test_cases: testCases,
+  };
+}
+// Export the function for use in controllers
+module.exports = { getStoryById };
