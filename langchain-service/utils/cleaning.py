@@ -5,7 +5,7 @@ def clean_user_story(raw_text: str) -> str:
     for line in lines:
         line = line.strip()
         if not line or any(p in line.lower() for p in [
-            "historia de usuario", "historias de usuario", "🛒", "🧑", "📦", "💳", "⭐"
+            "historia de usuario", "historias de usuario", "🛒", "🧑", "📦", "💳", "⭐", "🧑‍💼"
         ]):
             continue
 

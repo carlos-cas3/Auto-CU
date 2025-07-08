@@ -45,7 +45,7 @@ exports.sendToLangchain = async (text) => {
             { text },
             {
                 headers: { "Content-Type": "application/json" },
-                timeout: 60 * 60 * 1000, // 1 hora
+                timeout: 2 * 60 * 60 * 1000, // 2 horas
                 maxContentLength: Infinity,
             }
         );
