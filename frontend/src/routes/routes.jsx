@@ -2,6 +2,7 @@ import MainLayout from "../layouts/MainLayout.jsx";
 import Start from "../pages/Start.jsx";
 import ImageViewer from "../pages/ImageViewer.jsx";
 import React from "react";
+import StoryDetails from "../pages/StoryDetails.jsx";
 
 const routes = [
     {
@@ -13,7 +14,11 @@ const routes = [
                 element: <Start />,
             },
             {
-                path: "view", // <-- esto es un error sutil
+                path: "story",
+                element: <StoryDetails />,
+            },
+            {
+                path: "view",
                 element: <ImageViewer />,
             },
         ],
