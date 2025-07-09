@@ -11,4 +11,7 @@ router.use("/n8n", n8nRoutes);
 
 router.use("/story", storyRoutes); //  GET /api/story/:id
 
+router.use("/api/test", require("./test.routes"));
+
+
 module.exports = router;

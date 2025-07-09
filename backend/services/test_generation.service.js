@@ -1,49 +1,25 @@
+// services/test_generation.service.js
+
 const { supabase } = require("../config/supabase");
 
-function buildCUandRF(test_cases) {
-    const cuMap = new Map();
-    const rfMap = new Map();
-
-    for (const { cu, rf } of test_cases) {
-        if (!cuMap.has(cu)) {
-            cuMap.set(cu, { original: cu, cleaned: null });
-        }
-        if (!rfMap.has(rf)) {
-            rfMap.set(rf, { original: rf, cleaned: null });
-        }
-    }
-
-    return {
-        valid_cu: [...cuMap.values()],
-        valid_rf: [...rfMap.values()],
-    };
-}
-
 exports.saveAnalyzeOutput = async (storyId, analyzeResult) => {
-    const { test_cases } = analyzeResult;
-    const { valid_cu, valid_rf } = buildCUandRF(test_cases);
-
-    // Reutilizar la función original para guardar
+    const { test_cases, valid_cu, valid_rf } = analyzeResult;
     return await saveLangchainResults(storyId, {
+        test_cases,
         valid_cu,
         valid_rf,
-        test_cases,
     });
 };
 
-// Puedes mover esta función si no está en el mismo archivo
-async function saveLangchainResults(storyId, langchainResult) {
-    const { valid_cu, valid_rf, test_cases } = langchainResult;
-
+async function saveLangchainResults(
+    storyId,
+    { test_cases, valid_cu, valid_rf }
+) {
     const cuMap = new Map();
     const rfMap = new Map();
     const testCaseMap = new Map();
 
-    console.log(`💾 Guardando resultados para historia: ${storyId}`);
-    console.log(`🧪 Casos de prueba generados: ${test_cases.length}`);
-    console.log(`✅ CU únicos: ${valid_cu.length}`);
-    console.log(`✅ RF únicos: ${valid_rf.length}`);
-
+    // Insert CU
     for (const cu of valid_cu) {
         const { data, error } = await supabase
             .from("use_case")
@@ -57,15 +33,11 @@ async function saveLangchainResults(storyId, langchainResult) {
             .select("id")
             .single();
 
-        if (error) {
-            console.error("❌ Error al insertar CU:", cu.original);
-            throw new Error("Error al insertar CU: " + error.message);
-        }
-
-        console.log(`📝 CU insertado: "${cu.original}" → ID ${data.id}`);
+        if (error) throw new Error("Error al insertar CU: " + error.message);
         cuMap.set(cu.original, data.id);
     }
 
+    // Insert RF
     for (const rf of valid_rf) {
         const { data, error } = await supabase
             .from("functional_requirement")
@@ -79,17 +51,13 @@ async function saveLangchainResults(storyId, langchainResult) {
             .select("id")
             .single();
 
-        if (error) {
-            console.error("❌ Error al insertar RF:", rf.original);
-            throw new Error("Error al insertar RF: " + error.message);
-        }
-
-        console.log(`📋 RF insertado: "${rf.original}" → ID ${data.id}`);
+        if (error) throw new Error("Error al insertar RF: " + error.message);
         rfMap.set(rf.original, data.id);
     }
 
+    // Insert Test Cases
     for (const tc of test_cases) {
-        const { cu, rf, similarity, cluster, test_case } = tc;
+        const { test_case, similarity, cluster, cu, rf } = tc;
 
         const { data: tcData, error: tcError } = await supabase
             .from("test_case")
@@ -104,49 +72,52 @@ async function saveLangchainResults(storyId, langchainResult) {
             .select("id")
             .single();
 
-        if (tcError) {
-            console.error("❌ Error al insertar Test Case:", test_case);
+        if (tcError)
             throw new Error("Error al insertar Test Case: " + tcError.message);
-        }
 
         const testCaseId = tcData.id;
-        console.log(`🧪 Test Case insertado (cluster ${cluster}, sim ${similarity.toFixed(2)}):`);
-        console.log(`   ↪ "${test_case}"`);
+
+        // Relación con CU
+        const cuValues = Array.isArray(tc.cu) ? tc.cu : [tc.cu];
+        for (const cu of cuValues) {
+            const cuId = cuMap.get(cu);
+            if (cuId) {
+                const { error } = await supabase
+                    .from("test_case_use_case")
+                    .insert([{ test_case_id: testCaseId, use_case_id: cuId }]);
+                if (error) {
+                    console.error("❌ Error relación CU-TC:", cu);
+                    throw new Error("Error relación CU-TC: " + error.message);
+                }
+            }
+        }
+
+        // Relación con RF
+        const rfValues = Array.isArray(tc.rf) ? tc.rf : [tc.rf];
+        for (const rf of rfValues) {
+            const rfId = rfMap.get(rf);
+            if (rfId) {
+                const { error } = await supabase
+                    .from("test_case_functional_requirement")
+                    .insert([
+                        {
+                            test_case_id: testCaseId,
+                            functional_requirement_id: rfId,
+                        },
+                    ]);
+                if (error) {
+                    console.error("❌ Error relación RF-TC:", rf);
+                    throw new Error("Error relación RF-TC: " + error.message);
+                }
+            }
+        }
+
         testCaseMap.set(test_case, testCaseId);
-
-        const cuId = cuMap.get(cu);
-        if (cuId) {
-            const { error } = await supabase
-                .from("test_case_use_case")
-                .insert([{ test_case_id: testCaseId, use_case_id: cuId }]);
-            if (error) {
-                console.error("❌ Error relación CU-TC:", cu);
-                throw new Error("Error relación CU-TC: " + error.message);
-            }
-        }
-
-        const rfId = rfMap.get(rf);
-        if (rfId) {
-            const { error } = await supabase
-                .from("test_case_functional_requirement")
-                .insert([
-                    {
-                        test_case_id: testCaseId,
-                        functional_requirement_id: rfId,
-                    },
-                ]);
-            if (error) {
-                console.error("❌ Error relación RF-TC:", rf);
-                throw new Error("Error relación RF-TC: " + error.message);
-            }
-        }
     }
 
-    console.log("✅ Inserción de todos los datos completada.");
     return {
         use_cases: [...cuMap.entries()],
         requirements: [...rfMap.entries()],
         test_cases: [...testCaseMap.entries()],
     };
 }
-
