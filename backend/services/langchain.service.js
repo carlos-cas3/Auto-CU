@@ -1,3 +1,4 @@
+//services/langchain.service.js
 const axios = require("axios");
 
 const LANGCHAIN_SERVICE_URL = "http://127.0.0.1:8000";

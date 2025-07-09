@@ -108,7 +108,6 @@ def process_user_story(raw_text: str, verbose: bool = True) -> dict:
     # 9. Filtrar casos sin CU o RF
     test_cases = [tc for tc in test_cases if tc.get("cu") and tc.get("rf")]
 
-
     return {
         "cleaned_text": cleaned,
         "parsed_rf": rf_list,

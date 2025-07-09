@@ -2,7 +2,37 @@
 
 const { supabase } = require("../config/supabase");
 
-/** GET /story/:id */
+/**
+ * Inserta una nueva historia de usuario en la tabla user_stories
+ * @param {Object} data - Datos de la historia
+ * @param {string} data.title - Título del archivo o historia
+ * @param {string} data.file_url - URL pública del archivo subido
+ * @param {string} data.file_extension - Extensión del archivo (ej. 'docx', 'pdf')
+ */
+async function createStory({ title, file_url, file_extension }) {
+  const { data, error } = await supabase
+    .from("user_stories")
+    .insert([
+      {
+        title,
+        file_url,
+        file_extension,
+      },
+    ])
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error("Error al crear historia: " + error.message);
+  }
+
+  return data;
+}
+
+/**
+ * Recupera todos los datos relacionados a una historia
+ * @param {string} id - UUID de la historia
+ */
 async function getStoryById(id) {
   const { data: story, error: storyError } = await supabase
     .from("user_stories")
@@ -40,5 +70,8 @@ async function getStoryById(id) {
     test_cases: testCases,
   };
 }
-// Export the function for use in controllers
-module.exports = { getStoryById };
+
+module.exports = {
+  createStory,
+  getStoryById,
+};

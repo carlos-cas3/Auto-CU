@@ -5,7 +5,7 @@ You are a professional QA engineer.
 Generate a detailed test case in English based on the following information.
 
 Use the following structure:
-- Title
+- Title 
 - Objective
 - Preconditions
 - Test Steps
