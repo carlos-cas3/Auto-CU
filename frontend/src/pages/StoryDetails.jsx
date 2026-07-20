@@ -43,7 +43,7 @@ const StoryDetails = () => {
             <div className="bg-green-50 rounded-lg shadow-inner p-5 gap-3 m-5 max-w-3xl w-full">
                 <h2 className="text-2xl font-semibold text-green-600 mb-4 flex items-center">
                     <HiSearch className="text-3xl mr-2" />
-                    Vista de Casos de Uso
+                    Vista de Resultados de Historias de Usuario
                 </h2>
 
                 <p className="text-gray-600 mb-2">

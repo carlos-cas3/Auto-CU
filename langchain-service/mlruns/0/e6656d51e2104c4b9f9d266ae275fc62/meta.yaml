@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/ca/OneDrive/Desktop/Auto-CU/langchain-service/mlruns/0/e6656d51e2104c4b9f9d266ae275fc62/artifacts
+end_time: 1756759832968
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: e6656d51e2104c4b9f9d266ae275fc62
+run_name: process_user_story
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1756757531619
+status: 4
+tags: []
+user_id: ca
