@@ -1,2 +1,3 @@
 docs/casos_uso/
 docker-compose.yml
+node_modules/
