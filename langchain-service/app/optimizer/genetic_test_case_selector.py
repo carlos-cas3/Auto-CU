@@ -12,6 +12,11 @@ def optimize_test_cases(test_cases, max_generations=40, population_size=50):
     all_rf = set(tc["rf"] for tc in test_cases)
     num_cases = len(test_cases)
 
+    # El cruce de DEAP (cxTwoPoint) requiere al menos 2 individuos
+    if num_cases < 2:
+        print("⚠️ Menos de 2 casos de prueba; se omite la optimización genética.")
+        return test_cases
+
     # Crear tipo fitness (si no ha sido creado ya)
     if not hasattr(creator, "FitnessMulti"):
         creator.create("FitnessMulti", base.Fitness, weights=(1.0, 1.0, -0.5))  # +cobertura, +similitud, -cantidad

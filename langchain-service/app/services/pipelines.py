@@ -4,7 +4,6 @@ from app.services.parser import parse_requirements, parse_use_cases
 from app.services.embeddings import compute_embeddings_and_clusters
 from app.services.grouping import group_by_cluster_with_original
 from app.services.test_case_generator import generate_all_test_cases
-from app.optimizer.genetic_test_case_selector import optimize_test_cases
 import logging
 import time
 
@@ -102,10 +101,7 @@ def process_user_story(raw_text: str, verbose: bool = True) -> dict:
     # 7. Generar Casos de Prueba con IA (mistral via Ollama)
     test_cases = generate_all_test_cases(mixed_clusters, threshold=0.4)
 
-    # 8. Optimización con algoritmo genético
-    test_cases = optimize_test_cases(test_cases)
-
-    # 9. Filtrar casos sin CU o RF
+    # 8. Filtrar casos sin CU o RF
     test_cases = [tc for tc in test_cases if tc.get("cu") and tc.get("rf")]
 
     return {

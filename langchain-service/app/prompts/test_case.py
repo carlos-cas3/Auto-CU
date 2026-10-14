@@ -14,7 +14,7 @@ Use the following structure:
 🧾 Use Case (CU):
 {cu['original']}
 
-🛠️ Functional Requirement (RF):
+Functional Requirement (RF):
 {rf['original']}
 
 Similarity Score: {similarity:.3f}

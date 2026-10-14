@@ -1,0 +1,84 @@
+
+
+Este backlog ha sido elaborado a partir del análisis de la estructura del repositorio, organizado por carpetas correspondientes: **back**, **front** y **servicio externo**.
+
+---
+
+## 1. Back (Backend / API)
+
+| ID | Título | Tipo | Descripción | Criterios de aceptación (sugeridos) | Prioridad | Ubicación / Evidencia |
+|---|---|---|---|---|---|---|
+| BK-001 | Configuración base del backend | Chore | Estructura del servidor, configuración de entorno, conexión a BD, middlewares base (CORS, logs, errores). | Servidor levanta con config por env, healthcheck disponible, manejo centralizado de errores. | Alta | `back/` (app/server/config) |
+| BK-002 | Autenticación y autorización | Feature | Login, registro, tokens (JWT/session), roles/permisos, protección de rutas. | Rutas protegidas validan token, roles restringen acceso, refresh token si aplica. | Alta | Rutas/auth en `back/`, middlewares auth |
+| BK-003 | Gestión de usuarios | Feature | CRUD de usuarios, perfiles, estados (activo/inactivo), validaciones. | Crear/editar/eliminar/listar con validaciones, paginación, búsqueda. | Alta | Modelos/controladores de usuario en `back/` |
+| BK-004 | Modelos y esquema de datos | Feature | Entidades principales, relaciones, migraciones/seeders. | Esquema consistente, migraciones versionadas, seeds para dev. | Alta | `back/models/`, `back/db/`, migraciones |
+| BK-005 | Validaciones y schemas | Chore | Validación de entrada (DTOs/schemas), normalización de errores. | Requests inválidos devuelven 400 con mensajes claros. | Alta | `back/validators/` o middlewares |
+| BK-006 | Logging y observabilidad | Chore | Logs estructurados, niveles, trazas básicas. | Logs de requests/responses y errores con contexto. | Media | `back/middlewares/logger*`, config |
+| BK-007 | Endpoints CRUD por dominio | Feature | Exponer recursos del dominio (entidades) con REST/RESTful: list, get, create, update, delete. | Respuestas consistentes, códigos HTTP correctos, paginación/filtros. | Alta | `back/routes/`, `back/controllers/` |
+| BK-008 | Manejo de errores y excepciones | Chore | Handler global, errores tipados, mensajes seguros. | Errores 500 no exponen stack en prod. | Alta | Middleware de errores |
+| BK-009 | Pruebas backend | Test | Unitarias/integración para servicios, controladores, rutas. | Cobertura mínima en rutas críticas, tests pasan en CI. | Alta | `back/__tests__/`, `back/tests/`, spec |
+| BK-010 | Configuración de despliegue backend | Chore | Variables de entorno, Dockerfile, scripts start/build/test. | Build reproducible, healthcheck, arranque con `start:prod`. | Alta | `back/package.json`, Docker, `.env.example` |
+| BK-011 | Seguridad backend | Chore | Rate limiting, helmet, validación de inputs, sanitización, CORS estricto. | Headers seguros, límites por IP, prevención básica. | Alta | Middlewares seguridad |
+| BK-012 | Documentación API | Docs | OpenAPI/Swagger o JSDoc para endpoints. | Docs accesibles en `/docs` (si aplica), ejemplos de request/response. | Media | `back/docs/`, swagger config |
+| BK-013 | Migraciones y datos iniciales | Chore | Scripts para crear esquema y datos base. | `migrate`/`seed` funcionan desde limpio. | Media | `back/migrations/`, `back/seeds/` |
+
+**Notas back:** Buscar explícitamente en `back/routes`, `back/controllers`, `back/services`, `back/models` para mapear endpoints exactos.
+
+---
+
+## 2. Front (Frontend / UI)
+
+| ID | Título | Tipo | Descripción | Criterios de aceptación (sugeridos) | Prioridad | Ubicación / Evidencia |
+|---|---|---|---|---|---|---|
+| FR-001 | Estructura base del frontend | Chore | Scaffolding (Vite/CRA/Next), rutas, estado, estilos, assets. | App arranca, rutas base funcionan, estructura modular. | Alta | `front/` (package.json, src) |
+| FR-002 | Diseño y sistema de componentes | Feature | Componentes reutilizables (botones, inputs, modales, layout). | Storybook o uso consistente, props tipadas, estilos coherentes. | Alta | `front/src/components/` |
+| FR-003 | Autenticación UI | Feature | Pantallas/login/registro, guards de rutas, manejo de token, persistencia. | Login exitoso guarda sesión, rutas privadas redirigen a login, logout limpia estado. | Alta | `front/src/pages/auth/`, `front/src/guards/` |
+| FR-004 | Navegación y layout | Feature | Header/sidebar, breadcrumbs, rutas protegidas, 404/500. | Navegación fluida, layout responsive. | Alta | `front/src/layouts/`, `front/src/routes/` |
+| FR-005 | Vistas por dominio | Feature | Pantallas principales (listados, detalle, formularios CRUD). | CRUD completo desde UI con validaciones y feedback. | Alta | `front/src/pages/` o features |
+| FR-006 | Estado y datos | Feature | Capa de datos (services/fetch, hooks, store). | Llamadas a API centralizadas, manejo de loading/error, cache si aplica. | Alta | `front/src/services/`, `front/src/hooks/`, store |
+| FR-007 | Formularios y validación | Feature | Formularios con validación cliente, mensajes de error. | Validación síncrona/asíncrona, UX clara. | Alta | `front/src/components/forms/` |
+| FR-008 | Estilos y diseño responsivo | Chore | Tema, variables, breakpoints, accesibilidad básica (a11y). | Mobile-first, contraste adecuado, focus visible. | Media | `front/src/styles/`, tailwind/config |
+| FR-009 | Manejo de errores y feedback | Chore | Toasts/alerts, estados vacíos, errores de API. | Errores muestran mensaje user-friendly, retry si aplica. | Alta | `front/src/utils/error*`, componentes feedback |
+| FR-010 | Pruebas frontend | Test | Unitarias (componentes), integración (flujo), e2e si aplica. | Componentes críticos con tests, snapshots razonables. | Alta | `front/src/**/*.test.*`, `front/cypress/` |
+| FR-011 | Configuración build/despliegue | Chore | Variables env (VITE_), build optimizado, Docker/nginx. | Build sin warnings críticos, `.env.example`, serve estático. | Alta | `front/vite.config.*`, Dockerfile, nginx |
+| FR-012 | Internacionalización (i18n) | Feature | Soporte multiidioma (si requerido). | Textos externalizados, selector de idioma. | Baja | `front/src/i18n/` (si existe) |
+| FR-013 | Performance y DX | Chore | Code splitting, lazy loading, lint/format, tipos TS. | Typecheck/lint limpios, bundle razonable. | Media | `front/package.json` scripts |
+
+---
+
+## 3. Servicio externo (External Service / Third-party Integration)
+
+| ID | Título | Tipo | Descripción | Criterios de aceptación (sugeridos) | Prioridad | Ubicación / Evidencia |
+|---|---|---|---|---|---|---|
+| EXT-001 | Identificar servicios externos | Chore | Mapear integraciones (APIs, webhooks, SDKs, colas). | Inventario: nombre, URL/base, auth, propósito, crítico/no crítico. | Alta | `servicio externo/` (o `external/`, `integrations/`) |
+| EXT-002 | Cliente HTTP para servicio externo | Feature | Wrapper/client con auth, timeouts, reintentos, backoff. | Configurable por env, errores normalizados, logs de requests. | Alta | `servicio externo/clients/` |
+| EXT-003 | Autenticación con proveedor externo | Feature | API keys, OAuth2, tokens, rotación. | Credenciales via env, no hardcodeadas, refresh si aplica. | Alta | Config/client auth |
+| EXT-004 | Endpoints/mapeos de integración | Feature | Adaptar requests/responses del externo al dominio interno. | Mapping claro, validación de respuesta externa. | Alta | `servicio externo/mappers/`, services |
+| EXT-005 | Manejo de errores y resiliencia | Chore | Circuit breaker, reintentos, timeouts, fallback. | Fallos del externo no rompen flujo crítico sin fallback. | Alta | Cliente/servicio integración |
+| EXT-006 | Webhooks (si aplica) | Feature | Recepción/validación de webhooks del proveedor. | Verificación de firma, idempotencia, retries seguros. | Media | `servicio externo/webhooks/` |
+| EXT-007 | Configuración y entorno | Chore | URLs, keys, feature flags por env. | `.env.example` con vars necesarias, segregación dev/prod. | Alta | Config externo |
+| EXT-008 | Pruebas de integración externa | Test | Mocks/stubs, contract tests o tests con sandbox. | Usa mocks en unit/integration, evita llamadas reales en CI. | Alta | `servicio externo/__tests__/` |
+| EXT-009 | Logging y monitoreo | Chore | Trazas de llamadas externas, métricas, alertas. | Registra status, latencia, errores del proveedor. | Media | Logging cliente |
+| EXT-010 | Documentación de integración | Docs | Cómo configurar proveedor, flujos, límites, webhooks. | Guía clara de setup y troubleshooting. | Media | `servicio externo/README.md` |
+
+---
+
+## Epics sugeridos (agrupación)
+
+| Epic | Áreas | Objetivo |
+|---|---|---|
+| E1 - Plataforma base | Back + Front | App estable, auth, layout, estructura y despliegue. |
+| E2 - CRUDs de dominio | Back + Front | Funcionalidad core por entidades con UX completa. |
+| E3 - Integraciones externas | Servicio externo + Back | Conectar proveedor externo con dominio interno de forma resiliente. |
+| E4 - Calidad y operabilidad | Todas | Tests, lint/typecheck, seguridad, observabilidad, docs. |
+
+---
+
+## Próximos pasos (plan de investigación)
+
+1. **Mapear endpoints exactos (Back):** listar rutas en `back/routes/**` (REST) con métodos y middlewares.
+2. **Inventariar entidades:** leer `back/models/**`, schemas, migraciones para confirmar dominio.
+3. **Mapear páginas/componentes (Front):** ver `front/src/routes/**` y `front/src/pages/**` para listar flujos.
+4. **Auditar integración externa:** inspeccionar `servicio externo/**` (clientes, config, envs) para identificar proveedor y contrato.
+5. **Detectar deuda técnica:** recoger TODO/FIXME con grep y clasificarlos como bugs/chore.
+6. **Definir DoD por item:** incluir lint, typecheck, tests y criterios verificables.

@@ -1,0 +1,10 @@
+As a customer, I want to browse the catalog of instruments so that I can choose a suitable instrument.
+As a customer, I want to filter instruments by category, brand and price range so that I can narrow down the options.
+As a customer, I want to add instruments to my shopping cart so that I can purchase several items in one order.
+As a customer, I want to remove items from my shopping cart so that I can correct my selection before paying.
+As a customer, I want to check out my cart so that I can complete my purchase.
+As a customer, I want to pay with a credit card so that I can settle the order securely.
+As a customer, I want to receive an email confirmation after purchasing so that I can keep proof of purchase.
+As a shipping manager, I want to see pending orders so that I can prepare and dispatch products.
+As a shipping manager, I want to update the shipping status so that customers can track their order progress.
+As a customer, I want to track the status of my order so that I know when it will arrive.
